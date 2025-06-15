@@ -2,12 +2,14 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, Zap, Settings, Sparkles } from 'lucide-react';
+import { Brain, Zap, Settings, Sparkles, GitBranch, Code } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { IntelligentPromptSuggestions } from '@/components/IntelligentPromptSuggestions';
 import { AutomatedOptimizationSuggestions } from '@/components/AutomatedOptimizationSuggestions';
 import { SmartCategorizationSuggestions } from '@/components/SmartCategorizationSuggestions';
+import { PromptFlow } from '@/components/PromptFlow';
+import { IDERulesVault } from '@/components/IDERulesVault';
 import { usePrompts, type Prompt } from '@/hooks/usePrompts';
 import { toast } from 'sonner';
 
@@ -75,6 +77,17 @@ const Automation = () => {
     }
   };
 
+  const handleCreateFlow = (flow: any) => {
+    console.log('Creating PromptFlow:', flow);
+    toast.success('PromptFlow created successfully!');
+  };
+
+  const handleApplyIDERule = (rule: any) => {
+    console.log('Applying IDE rule:', rule);
+    toast.success(`${rule.name} configuration copied to clipboard!`);
+    navigator.clipboard.writeText(rule.content);
+  };
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -86,15 +99,15 @@ const Automation = () => {
               AI Automation Hub
             </h1>
             <p className="text-gray-600 text-lg">
-              Let AI help you improve, categorize, and optimize your prompts automatically
+              Advanced AI tools, PromptFlow workflows, and IDE configurations for systematic development
             </p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="suggestions" className="flex items-center">
                 <Brain className="w-4 h-4 mr-2" />
-                Intelligent Suggestions
+                AI Suggestions
               </TabsTrigger>
               <TabsTrigger value="optimization" className="flex items-center">
                 <Zap className="w-4 h-4 mr-2" />
@@ -102,7 +115,15 @@ const Automation = () => {
               </TabsTrigger>
               <TabsTrigger value="categorization" className="flex items-center">
                 <Settings className="w-4 h-4 mr-2" />
-                Smart Categorization
+                Categorization
+              </TabsTrigger>
+              <TabsTrigger value="promptflow" className="flex items-center">
+                <GitBranch className="w-4 h-4 mr-2" />
+                PromptFlow
+              </TabsTrigger>
+              <TabsTrigger value="ide-rules" className="flex items-center">
+                <Code className="w-4 h-4 mr-2" />
+                IDE Rules
               </TabsTrigger>
             </TabsList>
 
@@ -189,6 +210,43 @@ const Automation = () => {
               <SmartCategorizationSuggestions
                 prompts={prompts}
                 onApplyCategorization={handleApplyCategorization}
+              />
+            </TabsContent>
+
+            <TabsContent value="promptflow" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <GitBranch className="w-5 h-5 mr-2" />
+                    PromptFlow - Sequential Development Workflows
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Create and run sequential prompt workflows for systematic development processes like building full-stack applications.
+                  </p>
+                </CardHeader>
+              </Card>
+              
+              <PromptFlow
+                prompts={prompts}
+                onCreateFlow={handleCreateFlow}
+              />
+            </TabsContent>
+
+            <TabsContent value="ide-rules" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Code className="w-5 h-5 mr-2" />
+                    IDE Rules Vault - Development Standards
+                  </CardTitle>
+                  <p className="text-sm text-gray-600">
+                    Store and manage coding standards, ESLint configs, Prettier rules, TypeScript configs, and other development guidelines.
+                  </p>
+                </CardHeader>
+              </Card>
+              
+              <IDERulesVault
+                onApplyRule={handleApplyIDERule}
               />
             </TabsContent>
           </Tabs>
