@@ -7,12 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import type { Prompt } from '@/pages/Index';
+import type { Prompt } from '@/hooks/usePrompts';
 
 interface AddPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (prompt: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onAdd: (prompt: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => void;
   categories: string[];
 }
 

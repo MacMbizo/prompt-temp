@@ -7,10 +7,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Pencil, Image } from 'lucide-react';
-import type { Prompt } from '@/pages/Index';
+import type { Prompt } from '@/hooks/usePrompts';
 
 interface PromptCardProps {
-  prompt: Prompt;
+  prompt: Prompt & {
+    createdAt: Date;
+    updatedAt: Date;
+  };
   onDelete: (id: string) => void;
 }
 
