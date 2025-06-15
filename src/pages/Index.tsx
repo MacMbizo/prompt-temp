@@ -242,7 +242,7 @@ const Index = () => {
             {/* Sidebar */}
             <div className="flex-shrink-0">
               <FolderSidebar 
-                selectedFolder={selectedFolder}
+                selectedFolderId={selectedFolder}
                 onFolderSelect={setSelectedFolder}
               />
             </div>

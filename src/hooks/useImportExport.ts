@@ -32,7 +32,10 @@ export const useImportExport = () => {
           is_community: prompt.is_community,
           copy_count: prompt.copy_count,
           average_rating: prompt.average_rating,
-          rating_count: prompt.rating_count
+          rating_count: prompt.rating_count,
+          is_featured: prompt.is_featured,
+          status: prompt.status,
+          usage_count: prompt.usage_count
         }))
       };
 
@@ -89,6 +92,15 @@ export const useImportExport = () => {
         }
         if (prompt.rating_count === undefined) {
           prompt.rating_count = 0;
+        }
+        if (prompt.is_featured === undefined) {
+          prompt.is_featured = false;
+        }
+        if (prompt.status === undefined) {
+          prompt.status = 'active';
+        }
+        if (prompt.usage_count === undefined) {
+          prompt.usage_count = 0;
         }
       }
 
