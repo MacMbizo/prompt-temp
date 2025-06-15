@@ -92,7 +92,7 @@ export const PlatformInsightsDashboard: React.FC<PlatformInsightsDashboardProps>
             <SmartRecommendations 
               prompts={prompts} 
               selectedPlatforms={selectedPlatforms}
-              onPromptSelect={onPromptSelect}
+              onPromptSelect={onPromptSelect || (() => {})}
             />
           </TabsContent>
         </Tabs>

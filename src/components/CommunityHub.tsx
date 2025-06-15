@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,10 +62,23 @@ export const CommunityHub: React.FC<CommunityHubProps> = ({ onPromptSelect }) =>
       } else {
         // Transform the data to match our Prompt interface
         const transformedData: Prompt[] = (data || []).map(item => ({
-          ...item,
+          id: item.id,
+          title: item.title,
+          description: item.description || '',
+          content: item.content,
+          category: item.category,
+          tags: item.tags || [],
           platforms: item.platforms || [],
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          user_id: item.user_id,
           variables: parseVariables(item.variables),
           is_template: item.is_template || false,
+          folder_id: item.folder_id,
+          is_community: item.is_community || false,
+          copy_count: item.copy_count || 0,
+          average_rating: item.average_rating || null,
+          rating_count: item.rating_count || 0,
           is_featured: item.is_featured || false,
           status: item.status || 'active',
           usage_count: item.usage_count || 0
