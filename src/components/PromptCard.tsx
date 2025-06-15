@@ -11,7 +11,9 @@ import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2 } from 'lucide-re
 import { Prompt } from '@/hooks/usePrompts';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
+import { RatingComponent } from '@/components/RatingComponent';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRatings } from '@/hooks/useRatings';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -48,10 +50,12 @@ interface PromptCardProps {
   prompt: Prompt & { createdAt: Date; updatedAt: Date };
   onDelete: (id: string) => void;
   onDuplicate: (prompt: Prompt) => void;
+  onUpdate?: () => void;
 }
 
-export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDuplicate }) => {
+export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDuplicate, onUpdate }) => {
   const { user } = useAuth();
+  const { userRating, refetch: refetchRating } = useRatings(prompt.id);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isVariableFillerOpen, setIsVariableFillerOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
@@ -86,6 +90,11 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
     } else {
       setIsPreviewOpen(true);
     }
+  };
+
+  const handleRatingUpdate = () => {
+    refetchRating();
+    onUpdate?.();
   };
 
   const getQualityBadge = () => {
@@ -192,6 +201,17 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
             </div>
           )}
 
+          {/* Rating Component */}
+          <div className="mb-3">
+            <RatingComponent
+              promptId={prompt.id}
+              currentUserRating={userRating}
+              averageRating={prompt.average_rating}
+              ratingCount={prompt.rating_count}
+              onRatingUpdate={handleRatingUpdate}
+            />
+          </div>
+
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{prompt.createdAt.toLocaleDateString()}</span>
             <div className="flex items-center space-x-3">
@@ -199,12 +219,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                 <span className="flex items-center">
                   <Copy className="w-3 h-3 mr-1" />
                   {prompt.copy_count}
-                </span>
-              )}
-              {(prompt.rating_count || 0) > 0 && (
-                <span className="flex items-center">
-                  <Star className="w-3 h-3 mr-1" />
-                  {prompt.average_rating?.toFixed(1)} ({prompt.rating_count})
                 </span>
               )}
             </div>
