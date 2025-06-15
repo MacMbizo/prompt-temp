@@ -17,7 +17,7 @@ import { AnalyticsDashboard } from '@/components/AnalyticsDashboard';
 
 const Analytics = () => {
   const { user } = useAuth();
-  const { prompts, isLoading } = usePrompts();
+  const { prompts, loading } = usePrompts();
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleExportData = () => {
@@ -49,7 +49,7 @@ const Analytics = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <ProtectedRoute>
         <div className="min-h-screen bg-gray-50">
@@ -127,7 +127,7 @@ const Analytics = () => {
               <PlatformInsightsDashboard 
                 prompts={prompts}
                 selectedPlatforms={[]}
-                isLoading={isLoading}
+                isLoading={loading}
               />
             </TabsContent>
           </Tabs>
