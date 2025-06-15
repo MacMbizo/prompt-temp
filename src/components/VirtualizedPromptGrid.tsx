@@ -37,7 +37,11 @@ export const VirtualizedPromptGrid: React.FC<VirtualizedPromptGridProps> = ({
         {rowPrompts.map((prompt) => (
           <div key={prompt.id} className="flex-1 min-w-0">
             <PromptCard
-              prompt={prompt}
+              prompt={{
+                ...prompt,
+                createdAt: new Date(prompt.created_at),
+                updatedAt: new Date(prompt.updated_at)
+              }}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
               onUpdate={onUpdate}
@@ -64,6 +68,7 @@ export const VirtualizedPromptGrid: React.FC<VirtualizedPromptGridProps> = ({
     <div className="w-full">
       <List
         height={height}
+        width="100%"
         itemCount={rows.length}
         itemSize={400} // Height of each row
         overscanCount={2}
