@@ -70,7 +70,7 @@ export const VirtualizedPromptGrid: React.FC<VirtualizedPromptGridProps> = ({
         height={height}
         width="100%"
         itemCount={rows.length}
-        itemSize={400} // Height of each row
+        itemSize={400}
         overscanCount={2}
       >
         {Row}
