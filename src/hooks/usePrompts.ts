@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +25,10 @@ export interface Prompt {
   variables: PromptVariable[];
   is_template: boolean;
   folder_id: string | null;
+  is_community: boolean; // New field for community prompts
+  copy_count: number; // New field for copy tracking
+  average_rating: number | null; // New field for rating average
+  rating_count: number; // New field for rating count
 }
 
 // Helper function to convert database Json to PromptVariable[]
