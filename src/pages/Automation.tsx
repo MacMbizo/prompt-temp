@@ -34,7 +34,12 @@ const Automation = () => {
         category: suggestion.category || 'System Prompts',
         tags: suggestion.tags || [],
         platforms: suggestion.platforms || [],
-        variables: []
+        variables: [],
+        is_template: false,
+        folder_id: null,
+        is_community: false,
+        is_featured: false,
+        status: 'active'
       });
       toast.success('AI suggestion added to your prompts!');
     } catch (error) {

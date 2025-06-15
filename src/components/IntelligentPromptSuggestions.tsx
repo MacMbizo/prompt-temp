@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -129,7 +128,7 @@ export const IntelligentPromptSuggestions: React.FC<IntelligentPromptSuggestions
           platforms: prompt.platforms || [],
           reasoning: 'This prompt could benefit from more detailed instructions and examples',
           confidence: 0.8,
-          type: 'improvement'
+          type: 'improvement' as const
         });
       }
     });
@@ -156,7 +155,7 @@ Example usage:
 
     if (!topCategory) return [];
 
-    const variants = [
+    const variants: PromptSuggestion[] = [
       {
         id: 'variant-creative',
         title: `Creative ${topCategory} Assistant`,
@@ -174,7 +173,7 @@ Always prioritize originality while maintaining practicality.`,
         platforms: ['ChatGPT', 'Claude', 'Gemini'],
         reasoning: `Based on your frequent use of ${topCategory} prompts, this creative variant could provide fresh perspectives`,
         confidence: 0.9,
-        type: 'variant'
+        type: 'variant' as const
       },
       {
         id: 'variant-analytical',
@@ -194,7 +193,7 @@ Focus on logical reasoning and quantifiable results.`,
         platforms: ['GPT-4', 'Claude', 'Perplexity'],
         reasoning: `Complements your existing ${topCategory} prompts with a more analytical perspective`,
         confidence: 0.85,
-        type: 'variant'
+        type: 'variant' as const
       }
     ];
 
@@ -232,7 +231,7 @@ Provide:
         platforms: [topPlatform],
         reasoning: `Since you frequently use ${topPlatform}, this review prompt can help refine outputs`,
         confidence: 0.9,
-        type: 'complement'
+        type: 'complement' as const
       }
     ];
   };
@@ -257,7 +256,7 @@ Provide practical recommendations for ethical AI development and deployment.`,
         platforms: ['ChatGPT', 'Claude'],
         reasoning: 'AI ethics is becoming increasingly important in AI development',
         confidence: 0.7,
-        type: 'trending'
+        type: 'trending' as const
       },
       {
         id: 'trending-sustainability',
@@ -277,7 +276,7 @@ Focus on practical, measurable sustainability improvements that align with busin
         platforms: ['ChatGPT', 'Claude', 'Perplexity'],
         reasoning: 'Sustainability is a growing concern for businesses worldwide',
         confidence: 0.75,
-        type: 'trending'
+        type: 'trending' as const
       }
     ];
   };
