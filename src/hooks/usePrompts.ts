@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,6 +65,7 @@ export const usePrompts = () => {
         // Transform the data to match our Prompt interface
         const transformedData: Prompt[] = (data || []).map(item => ({
           ...item,
+          platforms: item.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(item.variables),
           is_template: item.is_template || false
         }));
@@ -171,7 +173,7 @@ export const usePrompts = () => {
     }
   };
 
-  const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'content' | 'category' | 'tags' | 'variables' | 'is_template' | 'folder_id'>>) => {
+  const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'content' | 'category' | 'tags' | 'platforms' | 'variables' | 'is_template' | 'folder_id'>>) => {
     if (!user) {
       toast.error('You must be logged in to update prompts');
       return;

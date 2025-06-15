@@ -25,6 +25,7 @@ export const useImportExport = () => {
           content: prompt.content,
           category: prompt.category,
           tags: prompt.tags,
+          platforms: prompt.platforms,
           variables: prompt.variables,
           is_template: prompt.is_template,
           folder_id: prompt.folder_id
@@ -63,10 +64,14 @@ export const useImportExport = () => {
         throw new Error('Invalid file format');
       }
 
-      // Validate each prompt has required fields
+      // Validate each prompt has required fields and add default platforms if missing
       for (const prompt of importData.prompts) {
         if (!prompt.title || !prompt.content || !prompt.category) {
           throw new Error('Invalid prompt data - missing required fields');
+        }
+        // Ensure platforms field exists for backward compatibility
+        if (!prompt.platforms) {
+          prompt.platforms = [];
         }
       }
 

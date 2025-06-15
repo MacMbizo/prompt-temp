@@ -48,6 +48,7 @@ export type Database = {
           folder_id: string | null
           id: string
           is_template: boolean | null
+          platforms: string[] | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -62,6 +63,7 @@ export type Database = {
           folder_id?: string | null
           id?: string
           is_template?: boolean | null
+          platforms?: string[] | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -76,6 +78,7 @@ export type Database = {
           folder_id?: string | null
           id?: string
           is_template?: boolean | null
+          platforms?: string[] | null
           tags?: string[] | null
           title?: string
           updated_at?: string
