@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Star, TrendingUp, Filter, Search } from 'lucide-react';
+import { Users, Star, TrendingUp, Filter, Search, Share } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Prompt, PromptVariable } from '@/hooks/usePrompts';
+import { useNavigate } from 'react-router-dom';
 
 interface CommunityHubProps {
   onPromptSelect: (prompt: Prompt) => void;
@@ -21,6 +23,7 @@ const parseVariables = (variables: any): PromptVariable[] => {
 };
 
 export const CommunityHub: React.FC<CommunityHubProps> = ({ onPromptSelect }) => {
+  const navigate = useNavigate();
   const [communityPrompts, setCommunityPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -131,7 +134,18 @@ export const CommunityHub: React.FC<CommunityHubProps> = ({ onPromptSelect }) =>
             <Users className="w-5 h-5 mr-2" />
             Community Hub
           </div>
-          <Badge variant="secondary">{filteredPrompts.length} prompts</Badge>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => navigate('/community?tab=contribute')}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <Share className="w-4 h-4" />
+              Contribute
+            </Button>
+            <Badge variant="secondary">{filteredPrompts.length} prompts</Badge>
+          </div>
         </CardTitle>
         
         <div className="flex flex-col sm:flex-row gap-4 mt-4">

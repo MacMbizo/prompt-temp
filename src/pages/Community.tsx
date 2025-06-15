@@ -1,240 +1,218 @@
 
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
 import { Header } from '@/components/Header';
-import { PromptCard } from '@/components/PromptCard';
-import { CategoryFilter } from '@/components/CategoryFilter';
-import { PlatformFilter } from '@/components/PlatformFilter';
-import { SearchBar } from '@/components/SearchBar';
-import { CategoryInsights } from '@/components/CategoryInsights';
-import { supabase } from '@/integrations/supabase/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
-import type { Prompt } from '@/hooks/usePrompts';
-
-const CATEGORIES = [
-  'All',
-  'Writing & Content',
-  'Programming & Development',
-  'System Prompts',
-  'Data Science & Analytics',
-  'Image Generation',
-  'Marketing & Sales',
-  'Business Strategy',
-  'Education & Learning',
-  'Creative & Storytelling',
-  'Code Review & Debugging',
-  'API Documentation',
-  'Research & Analysis',
-  'Customer Support',
-  'Social Media'
-];
-
-const AVAILABLE_PLATFORMS = [
-  'ChatGPT',
-  'Claude',
-  'Gemini',
-  'GPT-4',
-  'Midjourney',
-  'DALL-E',
-  'Stable Diffusion',
-  'Perplexity',
-  'GitHub Copilot',
-  'Notion AI'
-];
-
-// Helper function to parse variables from Json to PromptVariable[]
-const parseVariables = (variables: any) => {
-  if (!variables) return [];
-  if (Array.isArray(variables)) return variables;
-  return [];
-};
+import { CommunityHub } from '@/components/CommunityHub';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Users, Star, TrendingUp, Award, Share, Plus } from 'lucide-react';
+import { usePrompts, type Prompt } from '@/hooks/usePrompts';
+import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
+import { toast } from 'sonner';
 
 const Community = () => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const { prompts } = usePrompts();
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
 
-  const { data: communityPrompts = [], isLoading } = useQuery({
-    queryKey: ['community-prompts'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('prompts')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            username
-          )
-        `)
-        .eq('is_community', true)
-        .order('average_rating', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching community prompts:', error);
-        throw error;
-      }
-
-      // Transform the data to match our Prompt interface
-      return (data || []).map(item => ({
-        ...item,
-        platforms: item.platforms || [],
-        variables: parseVariables(item.variables),
-        is_template: item.is_template || false,
-        tags: item.tags || []
-      })) as Prompt[];
-    }
-  });
-
-  const filteredPrompts = useMemo(() => {
-    let filtered = communityPrompts;
-
-    // Filter by platforms
-    if (selectedPlatforms.length > 0) {
-      filtered = filtered.filter(prompt => 
-        prompt.platforms && prompt.platforms.some(platform => selectedPlatforms.includes(platform))
-      );
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(prompt =>
-        prompt.title.toLowerCase().includes(query) ||
-        prompt.description?.toLowerCase().includes(query) ||
-        prompt.content.toLowerCase().includes(query) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(prompt => prompt.category === selectedCategory);
-    }
-
-    return filtered;
-  }, [communityPrompts, selectedCategory, selectedPlatforms, searchQuery]);
-
-  const handlePlatformToggle = (platform: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platform) 
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
-    );
-  };
-
-  const handleClearAllPlatforms = () => {
-    setSelectedPlatforms([]);
-  };
-
-  const getPromptCountText = () => {
-    const totalPrompts = communityPrompts.length;
-    const filteredCount = filteredPrompts.length;
+  const handlePromptSelect = (prompt: Prompt) => {
+    // Create a copy of the prompt for the user
+    const promptCopy = {
+      ...prompt,
+      id: `copy-${Date.now()}`, // Generate new ID for the copy
+      title: `${prompt.title} (Community Copy)`,
+      is_community: false, // Mark as personal copy
+      user_id: '' // Will be set to current user
+    };
     
-    if (searchQuery || selectedCategory !== 'All' || selectedPlatforms.length > 0) {
-      return `Showing ${filteredCount} of ${totalPrompts} community prompts`;
-    }
-    return `${totalPrompts} community prompts`;
+    toast.success(`"${prompt.title}" has been copied to your prompts!`);
+    console.log('Copied prompt:', promptCopy);
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 animate-pulse">
-            </div>
-            <p className="text-gray-600">Loading community prompts...</p>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
+  const handleContributePrompt = (prompt: Prompt) => {
+    setSelectedPrompt(prompt);
+    setIsSubmissionModalOpen(true);
+  };
+
+  const userPrompts = prompts.filter(p => !p.is_community);
+  const featuredPrompts = prompts.filter(p => p.is_community && p.is_featured);
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         <Header />
         
         <main className="container mx-auto px-4 py-8">
-          <div className="flex flex-col lg:flex-row gap-6 mb-8">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                Community Prompts
-              </h1>
-              <p className="text-gray-600 text-lg mb-2">
-                Discover and use high-quality prompts shared by the community
-              </p>
-              <p className="text-sm text-gray-500">
-                {getPromptCountText()}
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-            <div className="lg:col-span-2">
-              <div className="space-y-6">
-                <CategoryFilter
-                  categories={CATEGORIES}
-                  selectedCategory={selectedCategory}
-                  onCategoryChange={setSelectedCategory}
-                />
-                <PlatformFilter
-                  platforms={AVAILABLE_PLATFORMS}
-                  selectedPlatforms={selectedPlatforms}
-                  onPlatformToggle={handlePlatformToggle}
-                  onClearAll={handleClearAllPlatforms}
-                />
+          {/* Hero Section */}
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+              Community Hub
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Discover, share, and collaborate on the best AI prompts with our global community of creators
+            </p>
+            <div className="flex justify-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-1" />
+                <span>10,000+ Members</span>
               </div>
-            </div>
-            
-            <div className="lg:col-span-3">
-              <div className="space-y-6">
-                <SearchBar
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  placeholder="Search community prompts, tags, or descriptions..."
-                />
-                <CategoryInsights
-                  selectedCategory={selectedCategory}
-                  prompts={filteredPrompts}
-                  isLoading={isLoading}
-                />
+              <div className="flex items-center">
+                <Star className="w-4 h-4 mr-1" />
+                <span>5,000+ Prompts</span>
+              </div>
+              <div className="flex items-center">
+                <TrendingUp className="w-4 h-4 mr-1" />
+                <span>Growing Daily</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPrompts.map((prompt) => (
-              <PromptCard
-                key={prompt.id}
-                prompt={{
-                  ...prompt,
-                  createdAt: new Date(prompt.created_at),
-                  updatedAt: new Date(prompt.updated_at)
-                }}
-                onDelete={() => {}} // Community prompts can't be deleted by users
-                onDuplicate={() => {}} // TODO: Add duplicate to personal collection
-                onUpdate={() => {}} // Community prompts are read-only
-              />
-            ))}
-          </div>
+          <Tabs defaultValue="discover" className="space-y-8">
+            <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto">
+              <TabsTrigger value="discover">Discover</TabsTrigger>
+              <TabsTrigger value="contribute">Contribute</TabsTrigger>
+              <TabsTrigger value="featured">Featured</TabsTrigger>
+            </TabsList>
 
-          {filteredPrompts.length === 0 && !isLoading && (
-            <div className="text-center py-12">
-              <div className="text-gray-400 text-6xl mb-4">🌟</div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No community prompts found</h3>
-              <p className="text-gray-500">
-                {searchQuery 
-                  ? `No prompts match "${searchQuery}"`
-                  : selectedCategory !== 'All' || selectedPlatforms.length > 0
-                  ? 'Try adjusting your search or filter selection'
-                  : 'Be the first to share a prompt with the community!'
-                }
-              </p>
-            </div>
-          )}
+            {/* Discover Tab */}
+            <TabsContent value="discover">
+              <CommunityHub onPromptSelect={handlePromptSelect} />
+            </TabsContent>
+
+            {/* Contribute Tab */}
+            <TabsContent value="contribute">
+              <div className="grid gap-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Share className="w-5 h-5 mr-2" />
+                      Share Your Prompts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-6">
+                      <h3 className="font-semibold text-purple-900 mb-2">Why Contribute?</h3>
+                      <ul className="text-purple-800 space-y-2 text-sm">
+                        <li>• Help others solve problems with effective prompts</li>
+                        <li>• Build your reputation in the AI community</li>
+                        <li>• Get feedback and improvements from other users</li>
+                        <li>• Discover new use cases for your prompts</li>
+                      </ul>
+                    </div>
+
+                    {userPrompts.length > 0 ? (
+                      <div>
+                        <h3 className="font-medium mb-4">Your Prompts Available for Contribution</h3>
+                        <div className="grid gap-4 max-h-96 overflow-y-auto">
+                          {userPrompts.map((prompt) => (
+                            <div
+                              key={prompt.id}
+                              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                            >
+                              <div className="flex-1">
+                                <h4 className="font-medium text-sm">{prompt.title}</h4>
+                                <p className="text-xs text-gray-600 mt-1 line-clamp-1">
+                                  {prompt.description}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    {prompt.category}
+                                  </Badge>
+                                  {prompt.platforms && prompt.platforms.map(platform => (
+                                    <Badge key={platform} variant="secondary" className="text-xs">
+                                      {platform}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              <Button
+                                onClick={() => handleContributePrompt(prompt)}
+                                size="sm"
+                                className="ml-4"
+                              >
+                                <Plus className="w-4 h-4 mr-1" />
+                                Contribute
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Users className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                        <p className="text-gray-500">Create some prompts first to contribute to the community!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Featured Tab */}
+            <TabsContent value="featured">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Award className="w-5 h-5 mr-2" />
+                    Featured Community Prompts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {featuredPrompts.length > 0 ? (
+                    <div className="grid gap-4">
+                      {featuredPrompts.map((prompt) => (
+                        <div
+                          key={prompt.id}
+                          className="p-6 border-2 border-yellow-200 bg-yellow-50 rounded-lg cursor-pointer hover:bg-yellow-100 transition-colors"
+                          onClick={() => handlePromptSelect(prompt)}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h3 className="font-semibold text-yellow-900">{prompt.title}</h3>
+                            <Badge className="bg-yellow-500 text-white">Featured</Badge>
+                          </div>
+                          <p className="text-yellow-800 text-sm mb-3">{prompt.description}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline">{prompt.category}</Badge>
+                              {prompt.average_rating && (
+                                <div className="flex items-center">
+                                  <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                  <span className="text-xs ml-1">{prompt.average_rating.toFixed(1)}</span>
+                                </div>
+                              )}
+                            </div>
+                            <Button size="sm" variant="outline">
+                              Use This Prompt
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Award className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                      <p className="text-gray-500">No featured prompts available yet.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </main>
+
+        {/* Community Submission Modal */}
+        {selectedPrompt && (
+          <CommunitySubmissionModal
+            isOpen={isSubmissionModalOpen}
+            onClose={() => {
+              setIsSubmissionModalOpen(false);
+              setSelectedPrompt(null);
+            }}
+            prompt={selectedPrompt}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );
