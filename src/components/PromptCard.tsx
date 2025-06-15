@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2 } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2, Eye } from 'lucide-react';
 import { Prompt } from '@/hooks/usePrompts';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
@@ -92,6 +92,10 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
     }
   };
 
+  const handleViewPrompt = () => {
+    setIsPreviewOpen(true);
+  };
+
   const handleRatingUpdate = () => {
     refetchRating();
     onUpdate?.();
@@ -110,12 +114,18 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
     return null;
   };
 
+  const isOwner = user && prompt.user_id === user.id;
+  const canEdit = isOwner && !prompt.is_community;
+
   return (
     <>
       <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-800 line-clamp-2">
+            <CardTitle 
+              className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer hover:text-purple-600 transition-colors"
+              onClick={handleViewPrompt}
+            >
               {prompt.title}
               {prompt.is_community && (
                 <Badge variant="outline" className="ml-2 text-xs">
@@ -131,20 +141,32 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleViewPrompt}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Details
+                </DropdownMenuItem>
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => {/* TODO: Add edit functionality */}}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => onDuplicate(prompt)}>
                   <Copy className="w-4 h-4 mr-2" />
                   Duplicate
                 </DropdownMenuItem>
-                {!prompt.is_community && user && prompt.user_id === user.id && (
+                {!prompt.is_community && isOwner && (
                   <DropdownMenuItem onClick={() => setIsCommunityModalOpen(true)}>
                     <Share2 className="w-4 h-4 mr-2" />
                     Submit to Community
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => onDelete(prompt.id)}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
+                {isOwner && (
+                  <DropdownMenuItem onClick={() => onDelete(prompt.id)}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -249,19 +271,63 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
         prompt={prompt}
       />
 
-      {/* Regular Prompt Preview Modal */}
+      {/* Prompt Preview/View Modal */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{prompt.title}</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{prompt.title}</span>
+              {prompt.is_community && (
+                <Badge variant="outline" className="text-xs">
+                  <Users className="w-3 h-3 mr-1" />
+                  Community
+                </Badge>
+              )}
+            </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
-            <Textarea
-              value={prompt.content}
-              readOnly
-              className="min-h-[200px]"
-            />
+            {prompt.description && (
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Description:</label>
+                <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">{prompt.description}</p>
+              </div>
+            )}
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-2">Prompt Content:</label>
+              <Textarea
+                value={prompt.content}
+                readOnly
+                className="min-h-[200px]"
+              />
+            </div>
+
+            {prompt.platforms && prompt.platforms.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Compatible Platforms:</label>
+                <div className="flex flex-wrap gap-2">
+                  {prompt.platforms.map((platform) => (
+                    <Badge key={platform} variant="secondary">
+                      {getPlatformIcon(platform)} {platform}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {prompt.tags && prompt.tags.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-2">Tags:</label>
+                <div className="flex flex-wrap gap-2">
+                  {prompt.tags.map((tag) => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Select AI Platform:</label>

@@ -1,9 +1,11 @@
+
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
 import { AddPromptModal } from '@/components/AddPromptModal';
 import { ImportExportModal } from '@/components/ImportExportModal';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { CategoryInsights } from '@/components/CategoryInsights';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { SearchBar } from '@/components/SearchBar';
 import { FolderSidebar } from '@/components/FolderSidebar';
@@ -45,7 +47,7 @@ const AVAILABLE_PLATFORMS = [
 ];
 
 const Index = () => {
-  const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt, importPrompts } = usePrompts();
+  const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt, importPrompts, refetch } = usePrompts();
   const { folders } = useFolders();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -91,6 +93,32 @@ const Index = () => {
     return filtered;
   }, [prompts, selectedCategory, selectedPlatforms, selectedFolderId, searchQuery]);
 
+  // Get prompts for insights (without folder filter for better insights)
+  const insightPrompts = useMemo(() => {
+    let filtered = prompts;
+
+    // Filter by platforms
+    if (selectedPlatforms.length > 0) {
+      filtered = filtered.filter(prompt => 
+        prompt.platforms && prompt.platforms.some(platform => selectedPlatforms.includes(platform))
+      );
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(prompt =>
+        prompt.title.toLowerCase().includes(query) ||
+        prompt.description.toLowerCase().includes(query) ||
+        prompt.content.toLowerCase().includes(query) ||
+        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
+      );
+    }
+
+    return filtered;
+  }, [prompts, selectedPlatforms, searchQuery]);
+
   const handlePlatformToggle = (platform: string) => {
     setSelectedPlatforms(prev => 
       prev.includes(platform) 
@@ -111,6 +139,10 @@ const Index = () => {
     };
     addPrompt(promptWithFolder);
     setIsAddModalOpen(false);
+  };
+
+  const handlePromptUpdate = () => {
+    refetch();
   };
 
   const getCurrentFolderName = () => {
@@ -208,8 +240,8 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                <div className="lg:col-span-1">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+                <div className="lg:col-span-2">
                   <div className="space-y-6">
                     <CategoryFilter
                       categories={CATEGORIES}
@@ -226,11 +258,18 @@ const Index = () => {
                 </div>
                 
                 <div className="lg:col-span-3">
-                  <SearchBar
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    placeholder={getSearchPlaceholder()}
-                  />
+                  <div className="space-y-6">
+                    <SearchBar
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      placeholder={getSearchPlaceholder()}
+                    />
+                    <CategoryInsights
+                      selectedCategory={selectedCategory}
+                      prompts={insightPrompts}
+                      isLoading={loading}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -245,6 +284,7 @@ const Index = () => {
                     }}
                     onDelete={deletePrompt}
                     onDuplicate={duplicatePrompt}
+                    onUpdate={handlePromptUpdate}
                   />
                 ))}
               </div>
