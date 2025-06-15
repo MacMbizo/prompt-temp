@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
@@ -14,6 +13,7 @@ import { Plus } from 'lucide-react';
 import { usePrompts } from '@/hooks/usePrompts';
 import { useFolders } from '@/hooks/useFolders';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { PlatformInsightsDashboard } from '@/components/PlatformInsightsDashboard';
 
 const CATEGORIES = [
   'All',
@@ -145,6 +145,19 @@ const Index = () => {
     refetch();
   };
 
+  const handlePromptSelect = (selectedPrompt: Prompt) => {
+    // Scroll to the prompt in the list
+    const promptElement = document.getElementById(`prompt-${selectedPrompt.id}`);
+    if (promptElement) {
+      promptElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add a brief highlight effect
+      promptElement.classList.add('ring-2', 'ring-purple-500', 'ring-opacity-50');
+      setTimeout(() => {
+        promptElement.classList.remove('ring-2', 'ring-purple-500', 'ring-opacity-50');
+      }, 2000);
+    }
+  };
+
   const getCurrentFolderName = () => {
     if (selectedFolderId === null) return 'All Prompts';
     if (selectedFolderId === 'uncategorized') return 'Uncategorized';
@@ -273,19 +286,30 @@ const Index = () => {
                 </div>
               </div>
 
+              {/* New Platform Insights Dashboard */}
+              <div className="mb-8">
+                <PlatformInsightsDashboard
+                  prompts={insightPrompts}
+                  selectedPlatforms={selectedPlatforms}
+                  isLoading={loading}
+                  onPromptSelect={handlePromptSelect}
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPrompts.map((prompt) => (
-                  <PromptCard
-                    key={prompt.id}
-                    prompt={{
-                      ...prompt,
-                      createdAt: new Date(prompt.created_at),
-                      updatedAt: new Date(prompt.updated_at)
-                    }}
-                    onDelete={deletePrompt}
-                    onDuplicate={duplicatePrompt}
-                    onUpdate={handlePromptUpdate}
-                  />
+                  <div key={prompt.id} id={`prompt-${prompt.id}`} className="transition-all duration-200">
+                    <PromptCard
+                      prompt={{
+                        ...prompt,
+                        createdAt: new Date(prompt.created_at),
+                        updatedAt: new Date(prompt.updated_at)
+                      }}
+                      onDelete={deletePrompt}
+                      onDuplicate={duplicatePrompt}
+                      onUpdate={handlePromptUpdate}
+                    />
+                  </div>
                 ))}
               </div>
 
