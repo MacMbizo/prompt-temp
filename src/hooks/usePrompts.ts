@@ -26,6 +26,18 @@ export interface Prompt {
   is_template: boolean;
 }
 
+// Helper function to convert database Json to PromptVariable[]
+const parseVariables = (variables: any): PromptVariable[] => {
+  if (!variables) return [];
+  if (Array.isArray(variables)) return variables;
+  return [];
+};
+
+// Helper function to convert PromptVariable[] to Json for database
+const serializeVariables = (variables: PromptVariable[]): any => {
+  return variables || [];
+};
+
 export const usePrompts = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +60,13 @@ export const usePrompts = () => {
         console.error('Error fetching prompts:', error);
         toast.error('Failed to load prompts');
       } else {
-        setPrompts(data || []);
+        // Transform the data to match our Prompt interface
+        const transformedData: Prompt[] = (data || []).map(item => ({
+          ...item,
+          variables: parseVariables(item.variables),
+          is_template: item.is_template || false
+        }));
+        setPrompts(transformedData);
       }
     } catch (error) {
       console.error('Error fetching prompts:', error);
@@ -65,12 +83,21 @@ export const usePrompts = () => {
     }
 
     try {
+      // Transform the data for database insertion
+      const dataForInsert = {
+        title: promptData.title,
+        description: promptData.description,
+        content: promptData.content,
+        category: promptData.category,
+        tags: promptData.tags,
+        variables: serializeVariables(promptData.variables),
+        is_template: promptData.is_template,
+        user_id: user.id
+      };
+
       const { data, error } = await supabase
         .from('prompts')
-        .insert([{
-          ...promptData,
-          user_id: user.id
-        }])
+        .insert([dataForInsert])
         .select()
         .single();
 
@@ -78,7 +105,13 @@ export const usePrompts = () => {
         console.error('Error adding prompt:', error);
         toast.error('Failed to add prompt');
       } else {
-        setPrompts(prev => [data, ...prev]);
+        // Transform the returned data to match our Prompt interface
+        const transformedPrompt: Prompt = {
+          ...data,
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false
+        };
+        setPrompts(prev => [transformedPrompt, ...prev]);
         toast.success('Prompt added successfully!');
       }
     } catch (error) {
