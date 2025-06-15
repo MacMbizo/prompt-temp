@@ -24,6 +24,7 @@ export interface Prompt {
   user_id: string;
   variables: PromptVariable[];
   is_template: boolean;
+  folder_id: string | null;
 }
 
 // Helper function to convert database Json to PromptVariable[]
@@ -92,6 +93,7 @@ export const usePrompts = () => {
         tags: promptData.tags,
         variables: serializeVariables(promptData.variables),
         is_template: promptData.is_template,
+        folder_id: promptData.folder_id,
         user_id: user.id
       };
 
@@ -117,6 +119,45 @@ export const usePrompts = () => {
     } catch (error) {
       console.error('Error adding prompt:', error);
       toast.error('Failed to add prompt');
+    }
+  };
+
+  const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'content' | 'category' | 'tags' | 'variables' | 'is_template' | 'folder_id'>>) => {
+    if (!user) {
+      toast.error('You must be logged in to update prompts');
+      return;
+    }
+
+    try {
+      // Transform the data for database update
+      const dataForUpdate: any = { ...updates };
+      if (updates.variables) {
+        dataForUpdate.variables = serializeVariables(updates.variables);
+      }
+
+      const { data, error } = await supabase
+        .from('prompts')
+        .update(dataForUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating prompt:', error);
+        toast.error('Failed to update prompt');
+      } else {
+        // Transform the returned data to match our Prompt interface
+        const transformedPrompt: Prompt = {
+          ...data,
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false
+        };
+        setPrompts(prev => prev.map(prompt => prompt.id === id ? transformedPrompt : prompt));
+        toast.success('Prompt updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating prompt:', error);
+      toast.error('Failed to update prompt');
     }
   };
 
@@ -153,6 +194,7 @@ export const usePrompts = () => {
     prompts,
     loading,
     addPrompt,
+    updatePrompt,
     deletePrompt,
     refetch: fetchPrompts
   };

@@ -9,12 +9,43 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       prompts: {
         Row: {
           category: string
           content: string
           created_at: string
           description: string | null
+          folder_id: string | null
           id: string
           is_template: boolean | null
           tags: string[] | null
@@ -28,6 +59,7 @@ export type Database = {
           content: string
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           is_template?: boolean | null
           tags?: string[] | null
@@ -41,6 +73,7 @@ export type Database = {
           content?: string
           created_at?: string
           description?: string | null
+          folder_id?: string | null
           id?: string
           is_template?: boolean | null
           tags?: string[] | null
@@ -49,7 +82,15 @@ export type Database = {
           user_id?: string
           variables?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prompts_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
