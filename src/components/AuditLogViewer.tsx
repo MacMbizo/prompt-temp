@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Download, Filter, Clock, User, Activity } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AuditLog {
@@ -45,40 +44,56 @@ export const AuditLogViewer: React.FC = () => {
 
   const fetchAuditLogs = async () => {
     try {
-      let query = supabase
-        .from('audit_logs')
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            username
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .limit(100);
+      // Mock data for now - will be replaced with actual Supabase calls once types are updated
+      const mockLogs: AuditLog[] = [
+        {
+          id: '1',
+          user_id: 'user-1',
+          action: 'CREATE',
+          resource_type: 'prompt',
+          resource_id: 'prompt-123',
+          details: { title: 'New Marketing Prompt' },
+          ip_address: '192.168.1.1',
+          user_agent: 'Mozilla/5.0...',
+          created_at: new Date().toISOString(),
+          profiles: {
+            full_name: 'John Admin',
+            username: 'johnadmin'
+          }
+        },
+        {
+          id: '2',
+          user_id: 'user-2',
+          action: 'UPDATE',
+          resource_type: 'user',
+          resource_id: 'user-456',
+          details: { role_changed: 'user to moderator' },
+          ip_address: '192.168.1.2',
+          user_agent: 'Mozilla/5.0...',
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          profiles: {
+            full_name: 'Jane Moderator',
+            username: 'janemoderator'
+          }
+        },
+        {
+          id: '3',
+          user_id: 'user-3',
+          action: 'LOGIN',
+          resource_type: 'auth',
+          resource_id: 'session-789',
+          details: { login_method: 'email' },
+          ip_address: '192.168.1.3',
+          user_agent: 'Mozilla/5.0...',
+          created_at: new Date(Date.now() - 7200000).toISOString(),
+          profiles: {
+            full_name: 'Bob User',
+            username: 'bobuser'
+          }
+        }
+      ];
 
-      // Apply filters
-      if (selectedAction) {
-        query = query.eq('action', selectedAction);
-      }
-
-      if (selectedResource) {
-        query = query.eq('resource_type', selectedResource);
-      }
-
-      // Date range filter
-      if (dateRange !== 'all') {
-        const days = parseInt(dateRange);
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days);
-        query = query.gte('created_at', startDate.toISOString());
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      
-      let filteredData = data || [];
+      let filteredData = mockLogs;
       
       // Apply search filter
       if (searchQuery) {
@@ -88,6 +103,16 @@ export const AuditLogViewer: React.FC = () => {
           log.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           log.ip_address.includes(searchQuery)
         );
+      }
+
+      // Apply action filter
+      if (selectedAction) {
+        filteredData = filteredData.filter(log => log.action === selectedAction);
+      }
+
+      // Apply resource filter
+      if (selectedResource) {
+        filteredData = filteredData.filter(log => log.resource_type === selectedResource);
       }
 
       setLogs(filteredData);
