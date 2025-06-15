@@ -11,17 +11,29 @@ interface CategoryFilterProps {
 const getCategoryIcon = (category: string) => {
   const icons = {
     'All': '📋',
+    'Writing & Content': '✍️',
+    'Programming & Development': '💻',
+    'System Prompts': '⚙️',
+    'Data Science & Analytics': '📊',
+    'Image Generation': '🎨',
+    'Marketing & Sales': '📢',
+    'Business Strategy': '💼',
+    'Education & Learning': '🎓',
+    'Creative & Storytelling': '🎭',
+    'Code Review & Debugging': '🔍',
+    'API Documentation': '📚',
+    'Research & Analysis': '🔬',
+    'Customer Support': '🎧',
+    'Social Media': '📱',
+    // Legacy mappings for backward compatibility
     'Writing': '✍️',
     'Programming': '💻',
-    'System Prompts': '⚙️',
     'Data Science': '📊',
-    'Image Generation': '🎨',
     'Marketing': '📢',
     'Business': '💼',
     'Education': '🎓',
     'Creative': '🎭',
     'Code Review': '🔍',
-    'API Documentation': '📚',
   };
   return icons[category as keyof typeof icons] || '📝';
 };
@@ -38,15 +50,17 @@ export const CategoryFilter = ({ categories, selectedCategory, onCategoryChange 
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "ghost"}
-              className={`w-full justify-start text-left transition-all duration-200 ${
+              className={`w-full justify-start text-left transition-all duration-200 min-h-[44px] h-auto py-2 px-3 ${
                 selectedCategory === category
                   ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md'
                   : 'hover:bg-purple-50 hover:text-purple-700 text-gray-600'
               }`}
               onClick={() => onCategoryChange(category)}
             >
-              <span className="mr-3 text-lg">{getCategoryIcon(category)}</span>
-              <span className="font-medium">{category}</span>
+              <span className="mr-3 text-lg flex-shrink-0">{getCategoryIcon(category)}</span>
+              <span className="font-medium text-sm leading-tight whitespace-normal text-left break-words">
+                {category}
+              </span>
             </Button>
           ))}
         </div>
