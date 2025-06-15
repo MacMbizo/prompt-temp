@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { TagsInput } from '@/components/TagsInput';
 import { TemplateVariableManager } from '@/components/TemplateVariableManager';
 import type { PromptVariable } from '@/hooks/usePrompts';
@@ -17,6 +19,35 @@ interface AddPromptModalProps {
   onAdd: (prompt: any) => void;
   categories: string[];
 }
+
+const AVAILABLE_PLATFORMS = [
+  'ChatGPT',
+  'Claude',
+  'Gemini',
+  'GPT-4',
+  'Midjourney',
+  'DALL-E',
+  'Stable Diffusion',
+  'Perplexity',
+  'GitHub Copilot',
+  'Notion AI'
+];
+
+const getPlatformIcon = (platform: string) => {
+  const icons = {
+    'ChatGPT': '🤖',
+    'Claude': '🧠',
+    'Gemini': '♊',
+    'Midjourney': '🎨',
+    'DALL-E': '🖼️',
+    'Stable Diffusion': '🌈',
+    'GPT-4': '⚡',
+    'Perplexity': '🔍',
+    'GitHub Copilot': '💻',
+    'Notion AI': '📝',
+  };
+  return icons[platform as keyof typeof icons] || '🔧';
+};
 
 export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   isOpen,
@@ -29,6 +60,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
   const [content, setContent] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [platforms, setPlatforms] = useState<string[]>([]);
   const [isTemplate, setIsTemplate] = useState(false);
   const [variables, setVariables] = useState<PromptVariable[]>([]);
 
@@ -45,6 +77,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
       content: content.trim(),
       category,
       tags: tags.filter(tag => tag.trim()),
+      platforms: platforms,
       is_template: isTemplate,
       variables: isTemplate ? variables : []
     });
@@ -55,6 +88,7 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
     setContent('');
     setCategory('');
     setTags([]);
+    setPlatforms([]);
     setIsTemplate(false);
     setVariables([]);
   };
@@ -67,8 +101,25 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
     setContent('');
     setCategory('');
     setTags([]);
+    setPlatforms([]);
     setIsTemplate(false);
     setVariables([]);
+  };
+
+  const handlePlatformToggle = (platform: string) => {
+    setPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
+  const handleSelectAllPlatforms = () => {
+    setPlatforms(AVAILABLE_PLATFORMS);
+  };
+
+  const handleClearAllPlatforms = () => {
+    setPlatforms([]);
   };
 
   return (
@@ -136,6 +187,56 @@ export const AddPromptModal: React.FC<AddPromptModalProps> = ({
               onChange={setTags}
               placeholder="Type to add tags..."
             />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label>Compatible AI Platforms</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSelectAllPlatforms}
+                  className="text-xs text-purple-600 hover:text-purple-700"
+                >
+                  Select All
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAllPlatforms}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear All
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 p-3 border rounded-lg bg-gray-50">
+              {AVAILABLE_PLATFORMS.map((platform) => (
+                <div key={platform} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={platform}
+                    checked={platforms.includes(platform)}
+                    onCheckedChange={() => handlePlatformToggle(platform)}
+                  />
+                  <Label htmlFor={platform} className="text-sm font-normal cursor-pointer">
+                    <span className="mr-1">{getPlatformIcon(platform)}</span>
+                    {platform}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            {platforms.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {platforms.map((platform) => (
+                  <Badge key={platform} variant="secondary" className="text-xs">
+                    {getPlatformIcon(platform)} {platform}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-4">
