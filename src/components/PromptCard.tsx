@@ -67,21 +67,21 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
 
   return (
     <>
-      <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
+      <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200 hover:border-purple-300 bg-white/80 backdrop-blur-sm h-fit">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2 mb-2">
-              <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
+            <div className="flex items-center gap-2 mb-2 flex-1 min-w-0">
+              <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
                 {prompt.title}
               </CardTitle>
               {prompt.is_template && (
-                <Badge className="bg-purple-100 text-purple-800 text-xs">
+                <Badge className="bg-purple-100 text-purple-800 text-xs flex-shrink-0">
                   <Wand2 className="w-3 h-3 mr-1" />
                   Template
                 </Badge>
               )}
             </div>
-            <Badge className={`${getCategoryColor(prompt.category)} text-xs`}>
+            <Badge className={`${getCategoryColor(prompt.category)} text-xs flex-shrink-0`}>
               {prompt.category}
             </Badge>
           </div>
@@ -97,8 +97,8 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
           )}
         </CardHeader>
         
-        <CardContent className="pt-0">
-          <div className="flex flex-wrap gap-1 mb-4">
+        <CardContent className="pt-0 space-y-4">
+          <div className="flex flex-wrap gap-1">
             {prompt.tags.map((tag) => (
               <Badge key={tag} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
                 #{tag}
@@ -106,13 +106,13 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
             ))}
           </div>
           
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={() => setIsExpanded(true)}
                 variant="outline"
                 size="sm"
-                className="hover:bg-purple-50 hover:border-purple-300"
+                className="hover:bg-purple-50 hover:border-purple-300 w-full"
               >
                 <Pencil className="w-3 h-3 mr-1" />
                 View
@@ -121,16 +121,16 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
                 onClick={handleTemplateUse}
                 variant="outline"
                 size="sm"
-                className={
+                className={`w-full ${
                   prompt.is_template 
                     ? "hover:bg-purple-50 hover:border-purple-300" 
                     : "hover:bg-blue-50 hover:border-blue-300"
-                }
+                }`}
               >
                 {prompt.is_template ? (
                   <>
                     <Wand2 className="w-3 h-3 mr-1" />
-                    Use Template
+                    Use
                   </>
                 ) : (
                   <>
@@ -139,28 +139,30 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
                   </>
                 )}
               </Button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={handleDuplicateClick}
                 variant="outline"
                 size="sm"
-                className="hover:bg-green-50 hover:border-green-300"
+                className="hover:bg-green-50 hover:border-green-300 w-full"
               >
                 <Files className="w-3 h-3 mr-1" />
                 Duplicate
               </Button>
+              <Button
+                onClick={handleDeleteClick}
+                variant="ghost"
+                size="sm"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 w-full"
+              >
+                Delete
+              </Button>
             </div>
-            
-            <Button
-              onClick={handleDeleteClick}
-              variant="ghost"
-              size="sm"
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              Delete
-            </Button>
           </div>
           
-          <div className="mt-3 text-xs text-gray-400">
+          <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
             Updated {prompt.updatedAt.toLocaleDateString()}
           </div>
         </CardContent>

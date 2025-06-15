@@ -40,12 +40,15 @@ const Index = () => {
   const filteredPrompts = useMemo(() => {
     let filtered = prompts;
 
-    // Filter by folder first
+    // Filter by folder first - this is the key fix
     if (selectedFolderId === 'uncategorized') {
+      // Show only prompts that have no folder_id (truly uncategorized)
       filtered = filtered.filter(prompt => !prompt.folder_id);
     } else if (selectedFolderId && selectedFolderId !== null) {
+      // Show only prompts in the selected folder
       filtered = filtered.filter(prompt => prompt.folder_id === selectedFolderId);
     }
+    // If selectedFolderId is null, show all prompts (no folder filtering)
 
     // Then filter by search query within the folder context
     if (searchQuery) {
