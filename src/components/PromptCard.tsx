@@ -1,37 +1,31 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { Pencil, Copy, Wand2, Files } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Copy, Edit, MoreVertical, Trash2, Star, Users } from 'lucide-react';
+import { Prompt } from '@/hooks/usePrompts';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
-import type { Prompt } from '@/hooks/usePrompts';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface PromptCardProps {
-  prompt: Prompt & {
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  onDelete: (id: string) => void;
-  onDuplicate: (prompt: Prompt) => void;
-}
-
-const getCategoryColor = (category: string) => {
-  const colors = {
-    'Writing & Content': 'bg-green-100 text-green-800',
-    'Image Generation': 'bg-purple-100 text-purple-800',
-    'Programming & Development': 'bg-blue-100 text-blue-800',
-    'Marketing & Sales': 'bg-orange-100 text-orange-800',
-    'Data Science & Analytics': 'bg-indigo-100 text-indigo-800',
-    'Education & Learning': 'bg-yellow-100 text-yellow-800',
-    'Business Strategy': 'bg-red-100 text-red-800',
-    'Creative & Storytelling': 'bg-pink-100 text-pink-800',
-  };
-  return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-};
+const AVAILABLE_PLATFORMS = [
+  'ChatGPT',
+  'Claude', 
+  'Gemini',
+  'GPT-4',
+  'Midjourney',
+  'DALL-E',
+  'Stable Diffusion',
+  'Perplexity',
+  'GitHub Copilot',
+  'Notion AI'
+];
 
 const getPlatformIcon = (platform: string) => {
   const icons = {
@@ -49,252 +43,222 @@ const getPlatformIcon = (platform: string) => {
   return icons[platform as keyof typeof icons] || '🔧';
 };
 
-export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isTemplateFillerOpen, setIsTemplateFillerOpen] = useState(false);
+interface PromptCardProps {
+  prompt: Prompt & { createdAt: Date; updatedAt: Date };
+  onDelete: (id: string) => void;
+  onDuplicate: (prompt: Prompt) => void;
+}
 
-  const handleCopyPrompt = async () => {
+export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDuplicate }) => {
+  const { user } = useAuth();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [filledContent, setFilledContent] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+
+  const handleCopy = async (content: string) => {
     try {
-      await navigator.clipboard.writeText(prompt.content);
+      await navigator.clipboard.writeText(content);
+      
+      // Track copy history if user is logged in
+      if (user && selectedPlatform) {
+        await supabase
+          .from('copy_history')
+          .insert({
+            user_id: user.id,
+            prompt_id: prompt.id,
+            platform_used: selectedPlatform
+          });
+      }
+      
       toast.success('Prompt copied to clipboard!');
+      setIsPreviewOpen(false);
     } catch (error) {
       toast.error('Failed to copy prompt');
     }
   };
 
-  const handleDeleteClick = () => {
-    if (window.confirm('Are you sure you want to delete this prompt?')) {
-      onDelete(prompt.id);
-      toast.success('Prompt deleted successfully');
+  const handlePreview = () => {
+    if (prompt.is_template) {
+      setFilledContent(prompt.content);
     }
+    setIsPreviewOpen(true);
   };
 
-  const handleDuplicateClick = () => {
-    onDuplicate(prompt);
-  };
-
-  const handleTemplateUse = () => {
-    if (prompt.is_template && prompt.variables.length > 0) {
-      setIsTemplateFillerOpen(true);
-    } else {
-      handleCopyPrompt();
-    }
+  const getQualityBadge = () => {
+    const rating = prompt.average_rating || 0;
+    const count = prompt.rating_count || 0;
+    
+    if (count < 3) return null;
+    
+    if (rating >= 4.5) return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">⭐ Premium</Badge>;
+    if (rating >= 4.0) return <Badge variant="secondary" className="bg-green-100 text-green-800">✓ Verified</Badge>;
+    if (rating >= 3.5) return <Badge variant="secondary" className="bg-blue-100 text-blue-800">👍 Good</Badge>;
+    
+    return null;
   };
 
   return (
     <>
-      <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200 hover:border-purple-300 bg-white/80 backdrop-blur-sm h-fit">
+      <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2 mb-2 flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors truncate">
-                {prompt.title}
-              </CardTitle>
-              {prompt.is_template && (
-                <Badge className="bg-purple-100 text-purple-800 text-xs flex-shrink-0">
-                  <Wand2 className="w-3 h-3 mr-1" />
-                  Template
+            <CardTitle className="text-lg font-semibold text-gray-800 line-clamp-2">
+              {prompt.title}
+              {prompt.is_community && (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  <Users className="w-3 h-3 mr-1" />
+                  Community
                 </Badge>
               )}
-            </div>
-            <Badge className={`${getCategoryColor(prompt.category)} text-xs flex-shrink-0`}>
+            </CardTitle>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onDuplicate(prompt)}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDelete(prompt.id)}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Badge variant="outline" className="text-xs">
               {prompt.category}
             </Badge>
+            {getQualityBadge()}
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            {prompt.description}
+        </CardHeader>
+
+        <CardContent className="flex-1 pb-3">
+          {prompt.description && (
+            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              {prompt.description}
+            </p>
+          )}
+
+          <p className="text-sm text-gray-700 mb-3 line-clamp-3">
+            {prompt.content}
           </p>
-          
-          {/* Platform badges */}
+
           {prompt.platforms && prompt.platforms.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {prompt.platforms.slice(0, 3).map((platform) => (
-                <Badge key={platform} variant="outline" className="text-xs bg-white/50">
-                  <span className="mr-1">{getPlatformIcon(platform)}</span>
-                  {platform}
+            <div className="mb-3">
+              <p className="text-xs text-gray-500 mb-1">Compatible with:</p>
+              <div className="flex flex-wrap gap-1">
+                {prompt.platforms.slice(0, 3).map((platform) => (
+                  <Badge key={platform} variant="secondary" className="text-xs">
+                    {getPlatformIcon(platform)} {platform}
+                  </Badge>
+                ))}
+                {prompt.platforms.length > 3 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{prompt.platforms.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {prompt.tags && prompt.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {prompt.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
                 </Badge>
               ))}
-              {prompt.platforms.length > 3 && (
-                <Badge variant="outline" className="text-xs bg-white/50">
-                  +{prompt.platforms.length - 3} more
+              {prompt.tags.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{prompt.tags.length - 3}
                 </Badge>
               )}
             </div>
           )}
-          
-          {prompt.is_template && prompt.variables.length > 0 && (
-            <div className="mt-2">
-              <p className="text-xs text-purple-600 font-medium mb-1">
-                Variables: {prompt.variables.map(v => v.name).join(', ')}
-              </p>
+
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>{prompt.createdAt.toLocaleDateString()}</span>
+            <div className="flex items-center space-x-3">
+              {prompt.copy_count > 0 && (
+                <span className="flex items-center">
+                  <Copy className="w-3 h-3 mr-1" />
+                  {prompt.copy_count}
+                </span>
+              )}
+              {prompt.rating_count > 0 && (
+                <span className="flex items-center">
+                  <Star className="w-3 h-3 mr-1" />
+                  {prompt.average_rating?.toFixed(1)} ({prompt.rating_count})
+                </span>
+              )}
             </div>
-          )}
-        </CardHeader>
-        
-        <CardContent className="pt-0 space-y-4">
-          <div className="flex flex-wrap gap-1">
-            {prompt.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
-                #{tag}
-              </Badge>
-            ))}
-          </div>
-          
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => setIsExpanded(true)}
-                variant="outline"
-                size="sm"
-                className="hover:bg-purple-50 hover:border-purple-300 w-full"
-              >
-                <Pencil className="w-3 h-3 mr-1" />
-                View
-              </Button>
-              <Button
-                onClick={handleTemplateUse}
-                variant="outline"
-                size="sm"
-                className={`w-full ${
-                  prompt.is_template 
-                    ? "hover:bg-purple-50 hover:border-purple-300" 
-                    : "hover:bg-blue-50 hover:border-blue-300"
-                }`}
-              >
-                {prompt.is_template ? (
-                  <>
-                    <Wand2 className="w-3 h-3 mr-1" />
-                    Use
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3 mr-1" />
-                    Copy
-                  </>
-                )}
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={handleDuplicateClick}
-                variant="outline"
-                size="sm"
-                className="hover:bg-green-50 hover:border-green-300 w-full"
-              >
-                <Files className="w-3 h-3 mr-1" />
-                Duplicate
-              </Button>
-              <Button
-                onClick={handleDeleteClick}
-                variant="ghost"
-                size="sm"
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 w-full"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-          
-          <div className="text-xs text-gray-400 pt-2 border-t border-gray-100">
-            Updated {prompt.updatedAt.toLocaleDateString()}
           </div>
         </CardContent>
+
+        <CardFooter className="pt-3">
+          <Button 
+            onClick={handlePreview}
+            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          >
+            {prompt.is_template ? 'Use Template' : 'Copy Prompt'}
+          </Button>
+        </CardFooter>
       </Card>
 
-      <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              {prompt.title}
-            </DialogTitle>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {prompt.is_template && (
-                <Badge className="bg-purple-100 text-purple-800 text-xs">
-                  <Wand2 className="w-3 h-3 mr-1" />
-                  Template
-                </Badge>
-              )}
-              <Badge className={`${getCategoryColor(prompt.category)} text-xs`}>
-                {prompt.category}
-              </Badge>
-              {prompt.platforms && prompt.platforms.map((platform) => (
-                <Badge key={platform} variant="outline" className="text-xs">
-                  <span className="mr-1">{getPlatformIcon(platform)}</span>
-                  {platform}
-                </Badge>
-              ))}
-              {prompt.tags.map((tag) => (
-                <Badge key={tag} variant="secondary" className="text-xs">
-                  #{tag}
-                </Badge>
-              ))}
-            </div>
+            <DialogTitle>{prompt.title}</DialogTitle>
           </DialogHeader>
           
-          <div className="mt-4">
-            <p className="text-gray-600 mb-4">{prompt.description}</p>
-            
-            {prompt.is_template && prompt.variables.length > 0 && (
-              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
-                <p className="text-sm font-medium text-purple-800 mb-2">Template Variables:</p>
-                <div className="space-y-1">
-                  {prompt.variables.map((variable) => (
-                    <div key={variable.name} className="text-xs text-purple-700">
-                      <span className="font-medium">{variable.name}</span>
-                      {variable.description && <span className="text-purple-600"> - {variable.description}</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700">Prompt Content:</label>
+          <div className="space-y-4">
+            {prompt.is_template && prompt.variables && prompt.variables.length > 0 ? (
+              <TemplateVariableFiller
+                content={prompt.content}
+                variables={prompt.variables}
+                onContentChange={setFilledContent}
+              />
+            ) : (
               <Textarea
                 value={prompt.content}
                 readOnly
-                className="min-h-[200px] resize-none bg-gray-50 border-gray-200"
+                className="min-h-[200px]"
               />
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select AI Platform:</label>
+              <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose the AI platform you'll use this with" />
+                </SelectTrigger>
+                <SelectContent>
+                  {AVAILABLE_PLATFORMS.map((platform) => (
+                    <SelectItem key={platform} value={platform}>
+                      {getPlatformIcon(platform)} {platform}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="flex justify-end gap-2 mt-6">
-              <Button
-                onClick={handleDuplicateClick}
-                variant="outline"
-                className="hover:bg-green-50 hover:border-green-300"
-              >
-                <Files className="w-4 h-4 mr-2" />
-                Duplicate
-              </Button>
-              <Button
-                onClick={handleTemplateUse}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-              >
-                {prompt.is_template ? (
-                  <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Use Template
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy Prompt
-                  </>
-                )}
-              </Button>
-            </div>
+
+            <Button 
+              onClick={() => handleCopy(prompt.is_template ? filledContent : prompt.content)}
+              className="w-full"
+              disabled={!selectedPlatform}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy to Clipboard
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {prompt.is_template && (
-        <TemplateVariableFiller
-          isOpen={isTemplateFillerOpen}
-          onClose={() => setIsTemplateFillerOpen(false)}
-          prompt={prompt}
-        />
-      )}
     </>
   );
 };

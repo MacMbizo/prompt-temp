@@ -9,6 +9,82 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      community_submissions: {
+        Row: {
+          id: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderator_notes: string | null
+          prompt_id: string
+          status: string
+          submission_reason: string | null
+          submitted_at: string
+          submitted_by: string
+        }
+        Insert: {
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderator_notes?: string | null
+          prompt_id: string
+          status?: string
+          submission_reason?: string | null
+          submitted_at?: string
+          submitted_by: string
+        }
+        Update: {
+          id?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderator_notes?: string | null
+          prompt_id?: string
+          status?: string
+          submission_reason?: string | null
+          submitted_at?: string
+          submitted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_submissions_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      copy_history: {
+        Row: {
+          copied_at: string
+          id: string
+          platform_used: string | null
+          prompt_id: string
+          user_id: string
+        }
+        Insert: {
+          copied_at?: string
+          id?: string
+          platform_used?: string | null
+          prompt_id: string
+          user_id: string
+        }
+        Update: {
+          copied_at?: string
+          id?: string
+          platform_used?: string | null
+          prompt_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "copy_history_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       folders: {
         Row: {
           color: string | null
@@ -39,16 +115,88 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      prompt_ratings: {
+        Row: {
+          created_at: string
+          id: string
+          prompt_id: string
+          rating: number
+          review_text: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt_id: string
+          rating: number
+          review_text?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt_id?: string
+          rating?: number
+          review_text?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prompt_ratings_prompt_id_fkey"
+            columns: ["prompt_id"]
+            isOneToOne: false
+            referencedRelation: "prompts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prompts: {
         Row: {
+          average_rating: number | null
           category: string
           content: string
+          copy_count: number | null
           created_at: string
           description: string | null
           folder_id: string | null
           id: string
+          is_community: boolean | null
           is_template: boolean | null
           platforms: string[] | null
+          rating_count: number | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -56,14 +204,18 @@ export type Database = {
           variables: Json | null
         }
         Insert: {
+          average_rating?: number | null
           category: string
           content: string
+          copy_count?: number | null
           created_at?: string
           description?: string | null
           folder_id?: string | null
           id?: string
+          is_community?: boolean | null
           is_template?: boolean | null
           platforms?: string[] | null
+          rating_count?: number | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -71,14 +223,18 @@ export type Database = {
           variables?: Json | null
         }
         Update: {
+          average_rating?: number | null
           category?: string
           content?: string
+          copy_count?: number | null
           created_at?: string
           description?: string | null
           folder_id?: string | null
           id?: string
+          is_community?: boolean | null
           is_template?: boolean | null
           platforms?: string[] | null
+          rating_count?: number | null
           tags?: string[] | null
           title?: string
           updated_at?: string
