@@ -1,8 +1,8 @@
-
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
 import { AddPromptModal } from '@/components/AddPromptModal';
+import { ImportExportModal } from '@/components/ImportExportModal';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { SearchBar } from '@/components/SearchBar';
 import { FolderSidebar } from '@/components/FolderSidebar';
@@ -28,12 +28,13 @@ const CATEGORIES = [
 ];
 
 const Index = () => {
-  const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt } = usePrompts();
+  const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt, importPrompts } = usePrompts();
   const { folders } = useFolders();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
 
   const filteredPrompts = useMemo(() => {
     let filtered = prompts;
@@ -126,6 +127,13 @@ const Index = () => {
                 
                 <div className="flex items-center gap-4">
                   <Button
+                    onClick={() => setIsImportExportModalOpen(true)}
+                    variant="outline"
+                    className="border-purple-300 text-purple-600 hover:bg-purple-50"
+                  >
+                    Import/Export
+                  </Button>
+                  <Button
                     onClick={() => setIsAddModalOpen(true)}
                     className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
                   >
@@ -189,6 +197,13 @@ const Index = () => {
           onClose={() => setIsAddModalOpen(false)}
           onAdd={handleAddPrompt}
           categories={CATEGORIES.filter(cat => cat !== 'All')}
+        />
+
+        <ImportExportModal
+          isOpen={isImportExportModalOpen}
+          onClose={() => setIsImportExportModalOpen(false)}
+          prompts={prompts}
+          onImport={importPrompts}
         />
       </div>
     </ProtectedRoute>

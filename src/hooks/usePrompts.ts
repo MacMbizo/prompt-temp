@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -231,6 +230,50 @@ export const usePrompts = () => {
     }
   };
 
+  const importPrompts = async (promptsData: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>[]) => {
+    if (!user) {
+      toast.error('You must be logged in to import prompts');
+      return;
+    }
+
+    try {
+      const promptsToInsert = promptsData.map(promptData => ({
+        title: promptData.title,
+        description: promptData.description,
+        content: promptData.content,
+        category: promptData.category,
+        tags: promptData.tags,
+        variables: serializeVariables(promptData.variables),
+        is_template: promptData.is_template,
+        folder_id: promptData.folder_id,
+        user_id: user.id
+      }));
+
+      const { data, error } = await supabase
+        .from('prompts')
+        .insert(promptsToInsert)
+        .select();
+
+      if (error) {
+        console.error('Error importing prompts:', error);
+        toast.error('Failed to import prompts');
+      } else {
+        // Transform the returned data to match our Prompt interface
+        const transformedPrompts: Prompt[] = (data || []).map(item => ({
+          ...item,
+          variables: parseVariables(item.variables),
+          is_template: item.is_template || false
+        }));
+        
+        setPrompts(prev => [...transformedPrompts, ...prev]);
+        toast.success(`Successfully imported ${transformedPrompts.length} prompts!`);
+      }
+    } catch (error) {
+      console.error('Error importing prompts:', error);
+      toast.error('Failed to import prompts');
+    }
+  };
+
   useEffect(() => {
     fetchPrompts();
   }, [user]);
@@ -242,6 +285,7 @@ export const usePrompts = () => {
     duplicatePrompt,
     updatePrompt,
     deletePrompt,
+    importPrompts,
     refetch: fetchPrompts
   };
 };
