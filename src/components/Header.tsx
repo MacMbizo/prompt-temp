@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, BarChart3, Brain, Home, Users } from 'lucide-react';
+import { LogOut, User, BarChart3, Brain, Home, Users, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -19,7 +19,8 @@ export const Header: React.FC = () => {
     { path: '/', label: 'Prompts', icon: Home },
     { path: '/community', label: 'Community', icon: Users },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/automation', label: 'AI Automation', icon: Brain }
+    { path: '/automation', label: 'AI Automation', icon: Brain },
+    { path: '/security', label: 'Security', icon: Shield }
   ];
 
   return (
