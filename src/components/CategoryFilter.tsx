@@ -12,13 +12,16 @@ const getCategoryIcon = (category: string) => {
   const icons = {
     'All': '📋',
     'Writing': '✍️',
-    'Image Generation': '🎨',
     'Programming': '💻',
-    'Marketing': '📢',
+    'System Prompts': '⚙️',
     'Data Science': '📊',
-    'Education': '🎓',
+    'Image Generation': '🎨',
+    'Marketing': '📢',
     'Business': '💼',
+    'Education': '🎓',
     'Creative': '🎭',
+    'Code Review': '🔍',
+    'API Documentation': '📚',
   };
   return icons[category as keyof typeof icons] || '📝';
 };

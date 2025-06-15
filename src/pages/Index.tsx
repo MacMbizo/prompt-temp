@@ -15,13 +15,16 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 const CATEGORIES = [
   'All',
   'Writing',
-  'Image Generation',
   'Programming',
-  'Marketing',
+  'System Prompts',
   'Data Science',
-  'Education',
+  'Image Generation',
+  'Marketing',
   'Business',
-  'Creative'
+  'Education',
+  'Creative',
+  'Code Review',
+  'API Documentation'
 ];
 
 const Index = () => {
