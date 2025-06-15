@@ -16,10 +16,12 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_template: boolean | null
           tags: string[] | null
           title: string
           updated_at: string
           user_id: string
+          variables: Json | null
         }
         Insert: {
           category: string
@@ -27,10 +29,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_template?: boolean | null
           tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
+          variables?: Json | null
         }
         Update: {
           category?: string
@@ -38,10 +42,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_template?: boolean | null
           tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
+          variables?: Json | null
         }
         Relationships: []
       }

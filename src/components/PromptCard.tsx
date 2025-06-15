@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Pencil, Image } from 'lucide-react';
+import { Pencil, Copy, Wand2 } from 'lucide-react';
+import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import type { Prompt } from '@/hooks/usePrompts';
 
 interface PromptCardProps {
@@ -33,6 +34,7 @@ const getCategoryColor = (category: string) => {
 
 export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isTemplateFillerOpen, setIsTemplateFillerOpen] = useState(false);
 
   const handleCopyPrompt = async () => {
     try {
@@ -50,14 +52,30 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
     }
   };
 
+  const handleTemplateUse = () => {
+    if (prompt.is_template && prompt.variables.length > 0) {
+      setIsTemplateFillerOpen(true);
+    } else {
+      handleCopyPrompt();
+    }
+  };
+
   return (
     <>
       <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200 hover:border-purple-300 bg-white/80 backdrop-blur-sm">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
-              {prompt.title}
-            </CardTitle>
+            <div className="flex items-center gap-2 mb-2">
+              <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">
+                {prompt.title}
+              </CardTitle>
+              {prompt.is_template && (
+                <Badge className="bg-purple-100 text-purple-800 text-xs">
+                  <Wand2 className="w-3 h-3 mr-1" />
+                  Template
+                </Badge>
+              )}
+            </div>
             <Badge className={`${getCategoryColor(prompt.category)} text-xs`}>
               {prompt.category}
             </Badge>
@@ -65,6 +83,13 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
           <p className="text-gray-600 text-sm leading-relaxed">
             {prompt.description}
           </p>
+          {prompt.is_template && prompt.variables.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs text-purple-600 font-medium mb-1">
+                Variables: {prompt.variables.map(v => v.name).join(', ')}
+              </p>
+            </div>
+          )}
         </CardHeader>
         
         <CardContent className="pt-0">
@@ -88,13 +113,26 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
                 View
               </Button>
               <Button
-                onClick={handleCopyPrompt}
+                onClick={handleTemplateUse}
                 variant="outline"
                 size="sm"
-                className="hover:bg-blue-50 hover:border-blue-300"
+                className={
+                  prompt.is_template 
+                    ? "hover:bg-purple-50 hover:border-purple-300" 
+                    : "hover:bg-blue-50 hover:border-blue-300"
+                }
               >
-                <Image className="w-3 h-3 mr-1" />
-                Copy
+                {prompt.is_template ? (
+                  <>
+                    <Wand2 className="w-3 h-3 mr-1" />
+                    Use Template
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3 mr-1" />
+                    Copy
+                  </>
+                )}
               </Button>
             </div>
             
@@ -121,6 +159,12 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
               {prompt.title}
             </DialogTitle>
             <div className="flex items-center gap-2 mt-2">
+              {prompt.is_template && (
+                <Badge className="bg-purple-100 text-purple-800 text-xs">
+                  <Wand2 className="w-3 h-3 mr-1" />
+                  Template
+                </Badge>
+              )}
               <Badge className={`${getCategoryColor(prompt.category)} text-xs`}>
                 {prompt.category}
               </Badge>
@@ -134,6 +178,21 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
           
           <div className="mt-4">
             <p className="text-gray-600 mb-4">{prompt.description}</p>
+            
+            {prompt.is_template && prompt.variables.length > 0 && (
+              <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+                <p className="text-sm font-medium text-purple-800 mb-2">Template Variables:</p>
+                <div className="space-y-1">
+                  {prompt.variables.map((variable) => (
+                    <div key={variable.name} className="text-xs text-purple-700">
+                      <span className="font-medium">{variable.name}</span>
+                      {variable.description && <span className="text-purple-600"> - {variable.description}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-3">
               <label className="text-sm font-medium text-gray-700">Prompt Content:</label>
               <Textarea
@@ -145,16 +204,33 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
             
             <div className="flex justify-end gap-2 mt-6">
               <Button
-                onClick={handleCopyPrompt}
+                onClick={handleTemplateUse}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
               >
-                <Image className="w-4 h-4 mr-2" />
-                Copy Prompt
+                {prompt.is_template ? (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Use Template
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Prompt
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {prompt.is_template && (
+        <TemplateVariableFiller
+          isOpen={isTemplateFillerOpen}
+          onClose={() => setIsTemplateFillerOpen(false)}
+          prompt={prompt}
+        />
+      )}
     </>
   );
 };

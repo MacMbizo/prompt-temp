@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import type { Prompt } from '@/hooks/usePrompts';
+import { TemplateVariableManager } from '@/components/TemplateVariableManager';
+import type { Prompt, PromptVariable } from '@/hooks/usePrompts';
 
 interface AddPromptModalProps {
   isOpen: boolean;
@@ -22,7 +24,9 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
     description: '',
     content: '',
     category: '',
-    tags: ''
+    tags: '',
+    is_template: false,
+    variables: [] as PromptVariable[]
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,12 +37,27 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
       return;
     }
 
+    // If it's a template, validate that variables mentioned in content exist
+    if (formData.is_template) {
+      const variablePattern = /\{(\w+)\}/g;
+      const mentionedVariables = [...formData.content.matchAll(variablePattern)].map(match => match[1]);
+      const definedVariables = formData.variables.map(v => v.name);
+      
+      const missingVariables = mentionedVariables.filter(v => !definedVariables.includes(v));
+      if (missingVariables.length > 0) {
+        toast.error(`Please define these variables: ${missingVariables.join(', ')}`);
+        return;
+      }
+    }
+
     const newPrompt = {
       title: formData.title.trim(),
       description: formData.description.trim(),
       content: formData.content.trim(),
       category: formData.category,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      is_template: formData.is_template,
+      variables: formData.variables
     };
 
     onAdd(newPrompt);
@@ -50,13 +69,15 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
       description: '',
       content: '',
       category: '',
-      tags: ''
+      tags: '',
+      is_template: false,
+      variables: []
     });
     
     onClose();
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean | PromptVariable[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -65,7 +86,7 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">
             Add New AI Prompt
@@ -119,6 +140,24 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
             />
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="is_template"
+              checked={formData.is_template}
+              onCheckedChange={(checked) => handleInputChange('is_template', !!checked)}
+            />
+            <Label htmlFor="is_template" className="text-sm font-medium text-gray-700">
+              This is a template prompt with variables
+            </Label>
+          </div>
+
+          {formData.is_template && (
+            <TemplateVariableManager
+              variables={formData.variables}
+              onChange={(variables) => handleInputChange('variables', variables)}
+            />
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="content" className="text-sm font-medium text-gray-700">
               Prompt Content *
@@ -127,9 +166,18 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
               id="content"
               value={formData.content}
               onChange={(e) => handleInputChange('content', e.target.value)}
-              placeholder="Enter your AI prompt here..."
+              placeholder={
+                formData.is_template 
+                  ? "Enter your AI prompt here with variables like {topic}, {tone}, {audience}..."
+                  : "Enter your AI prompt here..."
+              }
               className="min-h-[150px] border-gray-300 focus:border-purple-500"
             />
+            {formData.is_template && (
+              <p className="text-xs text-blue-600">
+                💡 Use curly braces to define variables: {'{variable_name}'}. Define each variable below.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -159,7 +207,7 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
               type="submit"
               className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
             >
-              Add Prompt
+              Add {formData.is_template ? 'Template' : 'Prompt'}
             </Button>
           </div>
         </form>

@@ -4,6 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
+export interface PromptVariable {
+  name: string;
+  description: string;
+  type: 'text' | 'select' | 'number';
+  defaultValue?: string;
+  options?: string[]; // For select type
+}
+
 export interface Prompt {
   id: string;
   title: string;
@@ -14,6 +22,8 @@ export interface Prompt {
   created_at: string;
   updated_at: string;
   user_id: string;
+  variables: PromptVariable[];
+  is_template: boolean;
 }
 
 export const usePrompts = () => {
