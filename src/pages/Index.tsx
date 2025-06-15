@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { AddPromptModal } from '@/components/AddPromptModal';
@@ -7,9 +6,12 @@ import { FolderSidebar } from '@/components/FolderSidebar';
 import { MainContentHeader } from '@/components/MainContent';
 import { FilterSection } from '@/components/FilterSection';
 import { PromptGrid } from '@/components/PromptGrid';
+import { VirtualizedPromptGrid } from '@/components/VirtualizedPromptGrid';
+import { PerformanceMonitor } from '@/components/PerformanceMonitor';
 import { EmptyState } from '@/components/EmptyState';
 import { usePrompts, type Prompt } from '@/hooks/usePrompts';
 import { useFolders } from '@/hooks/useFolders';
+import { useOptimizedSearch } from '@/hooks/useOptimizedSearch';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PlatformInsightsDashboard } from '@/components/PlatformInsightsDashboard';
 import { PromptOptimizationSuggestions } from '@/components/PromptOptimizationSuggestions';
@@ -53,11 +55,12 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
+  const [useVirtualization, setUseVirtualization] = useState(false);
 
-  const filteredPrompts = useMemo(() => {
+  // Pre-filter prompts before search optimization
+  const preFilteredPrompts = useMemo(() => {
     let filtered = prompts;
 
     // Filter by folder first
@@ -74,51 +77,30 @@ const Index = () => {
       );
     }
 
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(prompt =>
-        prompt.title.toLowerCase().includes(query) ||
-        prompt.description.toLowerCase().includes(query) ||
-        prompt.content.toLowerCase().includes(query) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
-      );
-    }
-
     // Filter by category
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(prompt => prompt.category === selectedCategory);
     }
 
     return filtered;
-  }, [prompts, selectedCategory, selectedPlatforms, selectedFolder, searchQuery]);
+  }, [prompts, selectedCategory, selectedPlatforms, selectedFolder]);
 
-  // Get prompts for insights (without folder filter for better insights)
-  const insightPrompts = useMemo(() => {
-    let filtered = prompts;
+  // Use optimized search
+  const {
+    searchQuery,
+    setSearchQuery,
+    filteredPrompts,
+    isSearching,
+    searchSuggestions,
+    resultCount
+  } = useOptimizedSearch({
+    prompts: preFilteredPrompts,
+    searchFields: ['title', 'description', 'content', 'tags', 'platforms'],
+    debounceMs: 300
+  });
 
-    // Filter by platforms
-    if (selectedPlatforms.length > 0) {
-      filtered = filtered.filter(prompt => 
-        prompt.platforms && prompt.platforms.some(platform => selectedPlatforms.includes(platform))
-      );
-    }
-
-    // Filter by search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(prompt =>
-        prompt.title.toLowerCase().includes(query) ||
-        prompt.description.toLowerCase().includes(query) ||
-        prompt.content.toLowerCase().includes(query) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
-        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
-      );
-    }
-
-    return filtered;
-  }, [prompts, selectedPlatforms, searchQuery]);
+  // Auto-enable virtualization for large datasets
+  const shouldUseVirtualization = filteredPrompts.length > 50 || useVirtualization;
 
   const handlePlatformToggle = (platform: string) => {
     setSelectedPlatforms(prev => 
@@ -181,10 +163,8 @@ const Index = () => {
       ? prompts.filter(p => !p.folder_id).length
       : prompts.filter(p => p.folder_id === selectedFolder).length;
     
-    const filteredCount = filteredPrompts.length;
-    
     if (searchQuery || selectedCategory !== 'All' || selectedPlatforms.length > 0) {
-      return `Showing ${filteredCount} of ${totalInFolder} prompts`;
+      return `Showing ${resultCount} of ${totalInFolder} prompts`;
     }
     return `${totalInFolder} prompts`;
   };
@@ -266,14 +246,30 @@ const Index = () => {
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 searchPlaceholder={getSearchPlaceholder()}
-                prompts={insightPrompts}
-                isLoading={loading}
+                prompts={preFilteredPrompts}
+                isLoading={loading || isSearching}
               />
+
+              {/* Performance toggle */}
+              {filteredPrompts.length > 20 && (
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    {filteredPrompts.length} prompts found
+                    {isSearching && <span className="ml-2 text-blue-600">Searching...</span>}
+                  </div>
+                  <button
+                    onClick={() => setUseVirtualization(!useVirtualization)}
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    {shouldUseVirtualization ? 'Disable' : 'Enable'} Virtualization
+                  </button>
+                </div>
+              )}
 
               {/* Platform Insights Dashboard */}
               <div className="mb-8">
                 <PlatformInsightsDashboard
-                  prompts={insightPrompts}
+                  prompts={preFilteredPrompts}
                   selectedPlatforms={selectedPlatforms}
                   isLoading={loading}
                   onPromptSelect={handlePromptSelect}
@@ -290,12 +286,23 @@ const Index = () => {
                 </div>
               )}
 
-              <PromptGrid
-                prompts={filteredPrompts}
-                onDelete={deletePrompt}
-                onDuplicate={duplicatePrompt}
-                onUpdate={handlePromptUpdate}
-              />
+              {/* Prompt Grid - Virtualized or Regular */}
+              {shouldUseVirtualization ? (
+                <VirtualizedPromptGrid
+                  prompts={filteredPrompts}
+                  onDelete={deletePrompt}
+                  onDuplicate={duplicatePrompt}
+                  onUpdate={handlePromptUpdate}
+                  height={600}
+                />
+              ) : (
+                <PromptGrid
+                  prompts={filteredPrompts}
+                  onDelete={deletePrompt}
+                  onDuplicate={duplicatePrompt}
+                  onUpdate={handlePromptUpdate}
+                />
+              )}
 
               {/* Featured Prompts Section */}
               <FeaturedPrompts prompts={prompts} />
@@ -325,6 +332,9 @@ const Index = () => {
           prompts={prompts}
           onImport={importPrompts}
         />
+
+        {/* Performance Monitor */}
+        <PerformanceMonitor />
       </div>
     </ProtectedRoute>
   );
