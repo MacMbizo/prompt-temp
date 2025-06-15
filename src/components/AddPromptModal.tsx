@@ -16,9 +16,10 @@ interface AddPromptModalProps {
   onClose: () => void;
   onAdd: (prompt: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => void;
   categories: string[];
+  defaultFolderId?: string | null;
 }
 
-export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPromptModalProps) => {
+export const AddPromptModal = ({ isOpen, onClose, onAdd, categories, defaultFolderId = null }: AddPromptModalProps) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,7 +27,8 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
     category: '',
     tags: '',
     is_template: false,
-    variables: [] as PromptVariable[]
+    variables: [] as PromptVariable[],
+    folder_id: defaultFolderId
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,7 +59,8 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
       category: formData.category,
       tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
       is_template: formData.is_template,
-      variables: formData.variables
+      variables: formData.variables,
+      folder_id: formData.folder_id
     };
 
     onAdd(newPrompt);
@@ -71,13 +74,14 @@ export const AddPromptModal = ({ isOpen, onClose, onAdd, categories }: AddPrompt
       category: '',
       tags: '',
       is_template: false,
-      variables: []
+      variables: [],
+      folder_id: defaultFolderId
     });
     
     onClose();
   };
 
-  const handleInputChange = (field: string, value: string | boolean | PromptVariable[]) => {
+  const handleInputChange = (field: string, value: string | boolean | PromptVariable[] | string | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
