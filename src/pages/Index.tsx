@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
@@ -39,26 +40,27 @@ const Index = () => {
   const filteredPrompts = useMemo(() => {
     let filtered = prompts;
 
-    // Filter by folder
+    // Filter by folder first
     if (selectedFolderId === 'uncategorized') {
       filtered = filtered.filter(prompt => !prompt.folder_id);
     } else if (selectedFolderId && selectedFolderId !== null) {
       filtered = filtered.filter(prompt => prompt.folder_id === selectedFolderId);
     }
 
-    // Filter by category
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(prompt => prompt.category === selectedCategory);
-    }
-
-    // Filter by search query
+    // Then filter by search query within the folder context
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(prompt =>
         prompt.title.toLowerCase().includes(query) ||
         prompt.description.toLowerCase().includes(query) ||
+        prompt.content.toLowerCase().includes(query) ||
         prompt.tags.some(tag => tag.toLowerCase().includes(query))
       );
+    }
+
+    // Finally filter by category
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(prompt => prompt.category === selectedCategory);
     }
 
     return filtered;
@@ -79,6 +81,29 @@ const Index = () => {
     if (selectedFolderId === 'uncategorized') return 'Uncategorized';
     const folder = folders.find(f => f.id === selectedFolderId);
     return folder ? folder.name : 'Unknown Folder';
+  };
+
+  const getSearchPlaceholder = () => {
+    const folderName = getCurrentFolderName();
+    if (selectedFolderId === null) {
+      return "Search all prompts, tags, or descriptions...";
+    }
+    return `Search in ${folderName}...`;
+  };
+
+  const getPromptCountText = () => {
+    const totalInFolder = selectedFolderId === null 
+      ? prompts.length 
+      : selectedFolderId === 'uncategorized'
+      ? prompts.filter(p => !p.folder_id).length
+      : prompts.filter(p => p.folder_id === selectedFolderId).length;
+    
+    const filteredCount = filteredPrompts.length;
+    
+    if (searchQuery || selectedCategory !== 'All') {
+      return `Showing ${filteredCount} of ${totalInFolder} prompts`;
+    }
+    return `${totalInFolder} prompts`;
   };
 
   if (loading) {
@@ -123,6 +148,9 @@ const Index = () => {
                       : `Prompts in ${getCurrentFolderName()}`
                     }
                   </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {getPromptCountText()}
+                  </p>
                 </div>
                 
                 <div className="flex items-center gap-4">
@@ -156,7 +184,7 @@ const Index = () => {
                   <SearchBar
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}
-                    placeholder="Search prompts, tags, or descriptions..."
+                    placeholder={getSearchPlaceholder()}
                   />
                 </div>
               </div>
@@ -181,7 +209,9 @@ const Index = () => {
                   <div className="text-gray-400 text-6xl mb-4">📝</div>
                   <h3 className="text-xl font-semibold text-gray-600 mb-2">No prompts found</h3>
                   <p className="text-gray-500">
-                    {searchQuery || selectedCategory !== 'All' || selectedFolderId
+                    {searchQuery 
+                      ? `No prompts match "${searchQuery}" in ${getCurrentFolderName()}`
+                      : selectedCategory !== 'All' || selectedFolderId
                       ? 'Try adjusting your search, filter, or folder selection'
                       : 'Start by adding your first AI prompt'
                     }
