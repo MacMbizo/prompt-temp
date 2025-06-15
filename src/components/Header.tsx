@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { book } from 'lucide-react';
+import { Book } from 'lucide-react';
 
 export const Header = () => {
   return (
@@ -9,7 +9,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <book className="w-6 h-6 text-white" />
+              <Book className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">Prompt Library</h1>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { pencil, image } from 'lucide-react';
+import { Pencil, Image } from 'lucide-react';
 import type { Prompt } from '@/pages/Index';
 
 interface PromptCardProps {
@@ -81,7 +81,7 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
                 size="sm"
                 className="hover:bg-purple-50 hover:border-purple-300"
               >
-                <pencil className="w-3 h-3 mr-1" />
+                <Pencil className="w-3 h-3 mr-1" />
                 View
               </Button>
               <Button
@@ -90,7 +90,7 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
                 size="sm"
                 className="hover:bg-blue-50 hover:border-blue-300"
               >
-                <image className="w-3 h-3 mr-1" />
+                <Image className="w-3 h-3 mr-1" />
                 Copy
               </Button>
             </div>
@@ -145,7 +145,7 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
                 onClick={handleCopyPrompt}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
               >
-                <image className="w-4 h-4 mr-2" />
+                <Image className="w-4 h-4 mr-2" />
                 Copy Prompt
               </Button>
             </div>
