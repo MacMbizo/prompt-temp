@@ -7,9 +7,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Edit, MoreVertical, Trash2, Star, Users } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2 } from 'lucide-react';
 import { Prompt } from '@/hooks/usePrompts';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
+import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -53,6 +54,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
   const { user } = useAuth();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isVariableFillerOpen, setIsVariableFillerOpen] = useState(false);
+  const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
   const handleCopy = async (content: string) => {
@@ -124,6 +126,12 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                   <Copy className="w-4 h-4 mr-2" />
                   Duplicate
                 </DropdownMenuItem>
+                {!prompt.is_community && user && prompt.user_id === user.id && (
+                  <DropdownMenuItem onClick={() => setIsCommunityModalOpen(true)}>
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Submit to Community
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => onDelete(prompt.id)}>
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
@@ -217,6 +225,13 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
       <TemplateVariableFiller
         isOpen={isVariableFillerOpen}
         onClose={() => setIsVariableFillerOpen(false)}
+        prompt={prompt}
+      />
+
+      {/* Community Submission Modal */}
+      <CommunitySubmissionModal
+        isOpen={isCommunityModalOpen}
+        onClose={() => setIsCommunityModalOpen(false)}
         prompt={prompt}
       />
 

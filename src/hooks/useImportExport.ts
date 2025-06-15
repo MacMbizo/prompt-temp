@@ -28,7 +28,11 @@ export const useImportExport = () => {
           platforms: prompt.platforms,
           variables: prompt.variables,
           is_template: prompt.is_template,
-          folder_id: prompt.folder_id
+          folder_id: prompt.folder_id,
+          is_community: prompt.is_community,
+          copy_count: prompt.copy_count,
+          average_rating: prompt.average_rating,
+          rating_count: prompt.rating_count
         }))
       };
 
@@ -64,7 +68,7 @@ export const useImportExport = () => {
         throw new Error('Invalid file format');
       }
 
-      // Validate each prompt has required fields and add default platforms if missing
+      // Validate each prompt has required fields and add defaults for new fields
       for (const prompt of importData.prompts) {
         if (!prompt.title || !prompt.content || !prompt.category) {
           throw new Error('Invalid prompt data - missing required fields');
@@ -72,6 +76,19 @@ export const useImportExport = () => {
         // Ensure platforms field exists for backward compatibility
         if (!prompt.platforms) {
           prompt.platforms = [];
+        }
+        // Add defaults for new fields if they don't exist (backward compatibility)
+        if (prompt.is_community === undefined) {
+          prompt.is_community = false;
+        }
+        if (prompt.copy_count === undefined) {
+          prompt.copy_count = 0;
+        }
+        if (prompt.average_rating === undefined) {
+          prompt.average_rating = null;
+        }
+        if (prompt.rating_count === undefined) {
+          prompt.rating_count = 0;
         }
       }
 
