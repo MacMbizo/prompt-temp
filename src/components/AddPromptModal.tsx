@@ -1,218 +1,169 @@
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
+import { TagsInput } from '@/components/TagsInput';
 import { TemplateVariableManager } from '@/components/TemplateVariableManager';
-import type { Prompt, PromptVariable } from '@/hooks/usePrompts';
+import type { PromptVariable } from '@/hooks/usePrompts';
 
 interface AddPromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (prompt: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => void;
+  onAdd: (prompt: any) => void;
   categories: string[];
-  defaultFolderId?: string | null;
 }
 
-export const AddPromptModal = ({ isOpen, onClose, onAdd, categories, defaultFolderId = null }: AddPromptModalProps) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    content: '',
-    category: '',
-    tags: '',
-    is_template: false,
-    variables: [] as PromptVariable[],
-    folder_id: defaultFolderId
-  });
+export const AddPromptModal: React.FC<AddPromptModalProps> = ({
+  isOpen,
+  onClose,
+  onAdd,
+  categories
+}) => {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [content, setContent] = useState('');
+  const [category, setCategory] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [isTemplate, setIsTemplate] = useState(false);
+  const [variables, setVariables] = useState<PromptVariable[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim() || !formData.content.trim() || !formData.category) {
-      toast.error('Please fill in all required fields');
+    if (!title.trim() || !content.trim() || !category) {
       return;
     }
 
-    // If it's a template, validate that variables mentioned in content exist
-    if (formData.is_template) {
-      const variablePattern = /\{(\w+)\}/g;
-      const mentionedVariables = [...formData.content.matchAll(variablePattern)].map(match => match[1]);
-      const definedVariables = formData.variables.map(v => v.name);
-      
-      const missingVariables = mentionedVariables.filter(v => !definedVariables.includes(v));
-      if (missingVariables.length > 0) {
-        toast.error(`Please define these variables: ${missingVariables.join(', ')}`);
-        return;
-      }
-    }
-
-    const newPrompt = {
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      content: formData.content.trim(),
-      category: formData.category,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      is_template: formData.is_template,
-      variables: formData.variables,
-      folder_id: formData.folder_id
-    };
-
-    onAdd(newPrompt);
-    toast.success('Prompt added successfully!');
-    
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      content: '',
-      category: '',
-      tags: '',
-      is_template: false,
-      variables: [],
-      folder_id: defaultFolderId
+    onAdd({
+      title: title.trim(),
+      description: description.trim(),
+      content: content.trim(),
+      category,
+      tags: tags.filter(tag => tag.trim()),
+      is_template: isTemplate,
+      variables: isTemplate ? variables : []
     });
-    
-    onClose();
+
+    // Reset form
+    setTitle('');
+    setDescription('');
+    setContent('');
+    setCategory('');
+    setTags([]);
+    setIsTemplate(false);
+    setVariables([]);
   };
 
-  const handleInputChange = (field: string, value: string | boolean | PromptVariable[] | string | null) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleClose = () => {
+    onClose();
+    // Reset form when closing
+    setTitle('');
+    setDescription('');
+    setContent('');
+    setCategory('');
+    setTags([]);
+    setIsTemplate(false);
+    setVariables([]);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-gray-900">
-            Add New AI Prompt
-          </DialogTitle>
+          <DialogTitle>Add New Prompt</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="title" className="text-sm font-medium text-gray-700">
-                Title *
-              </Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Enter prompt title"
-                className="border-gray-300 focus:border-purple-500"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="category" className="text-sm font-medium text-gray-700">
-                Category *
-              </Label>
-              <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
-                <SelectTrigger className="border-gray-300 focus:border-purple-500">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700">
-              Description
-            </Label>
+            <Label htmlFor="title">Title *</Label>
             <Input
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="Brief description of the prompt's purpose"
-              className="border-gray-300 focus:border-purple-500"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter prompt title"
+              required
             />
           </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is_template"
-              checked={formData.is_template}
-              onCheckedChange={(checked) => handleInputChange('is_template', !!checked)}
-            />
-            <Label htmlFor="is_template" className="text-sm font-medium text-gray-700">
-              This is a template prompt with variables
-            </Label>
-          </div>
-
-          {formData.is_template && (
-            <TemplateVariableManager
-              variables={formData.variables}
-              onChange={(variables) => handleInputChange('variables', variables)}
-            />
-          )}
 
           <div className="space-y-2">
-            <Label htmlFor="content" className="text-sm font-medium text-gray-700">
-              Prompt Content *
-            </Label>
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief description of what this prompt does"
+              className="min-h-[80px]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content">Prompt Content *</Label>
             <Textarea
               id="content"
-              value={formData.content}
-              onChange={(e) => handleInputChange('content', e.target.value)}
-              placeholder={
-                formData.is_template 
-                  ? "Enter your AI prompt here with variables like {topic}, {tone}, {audience}..."
-                  : "Enter your AI prompt here..."
-              }
-              className="min-h-[150px] border-gray-300 focus:border-purple-500"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Enter your prompt content here..."
+              className="min-h-[120px]"
+              required
             />
-            {formData.is_template && (
-              <p className="text-xs text-blue-600">
-                💡 Use curly braces to define variables: {'{variable_name}'}. Define each variable below.
-              </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category *</Label>
+            <Select value={category} onValueChange={setCategory} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            <TagsInput
+              tags={tags}
+              onChange={setTags}
+              placeholder="Type to add tags..."
+            />
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="isTemplate"
+                checked={isTemplate}
+                onCheckedChange={setIsTemplate}
+              />
+              <Label htmlFor="isTemplate">Make this a template with variables</Label>
+            </div>
+
+            {isTemplate && (
+              <div className="space-y-2">
+                <Label>Template Variables</Label>
+                <TemplateVariableManager
+                  variables={variables}
+                  onChange={setVariables}
+                />
+              </div>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tags" className="text-sm font-medium text-gray-700">
-              Tags
-            </Label>
-            <Input
-              id="tags"
-              value={formData.tags}
-              onChange={(e) => handleInputChange('tags', e.target.value)}
-              placeholder="Enter tags separated by commas (e.g., creative, writing, story)"
-              className="border-gray-300 focus:border-purple-500"
-            />
-            <p className="text-xs text-gray-500">Separate multiple tags with commas</p>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
-            >
-              Add {formData.is_template ? 'Template' : 'Prompt'}
-            </Button>
+            <Button type="submit">Add Prompt</Button>
           </div>
         </form>
       </DialogContent>
