@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
@@ -10,7 +11,7 @@ import { SearchBar } from '@/components/SearchBar';
 import { FolderSidebar } from '@/components/FolderSidebar';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { usePrompts } from '@/hooks/usePrompts';
+import { usePrompts, type Prompt } from '@/hooks/usePrompts';
 import { useFolders } from '@/hooks/useFolders';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PlatformInsightsDashboard } from '@/components/PlatformInsightsDashboard';
