@@ -8,17 +8,23 @@ import type { Prompt } from '@/hooks/usePrompts';
 
 interface SmartRecommendationsProps {
   prompts: Prompt[];
-  userActivity: {
+  userActivity?: {
     recentCategories: string[];
     recentPlatforms: string[];
     favoriteTypes: string[];
   };
+  selectedPlatforms?: string[];
   onPromptSelect: (prompt: Prompt) => void;
 }
 
 export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
   prompts,
-  userActivity,
+  userActivity = {
+    recentCategories: [],
+    recentPlatforms: [],
+    favoriteTypes: []
+  },
+  selectedPlatforms = [],
   onPromptSelect
 }) => {
   const [recommendations, setRecommendations] = useState<{
@@ -35,17 +41,24 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
 
   useEffect(() => {
     generateRecommendations();
-  }, [prompts, userActivity]);
+  }, [prompts, userActivity, selectedPlatforms]);
 
   const generateRecommendations = () => {
+    // Filter prompts by selected platforms if any
+    const filteredPrompts = selectedPlatforms.length > 0 
+      ? prompts.filter(p => 
+          p.platforms && p.platforms.some(platform => selectedPlatforms.includes(platform))
+        )
+      : prompts;
+
     // Trending prompts (high usage recently)
-    const trending = prompts
+    const trending = filteredPrompts
       .filter(p => (p.usage_count || 0) > 10)
       .sort((a, b) => (b.usage_count || 0) - (a.usage_count || 0))
       .slice(0, 3);
 
     // Similar to user's recent activity
-    const similar = prompts
+    const similar = filteredPrompts
       .filter(p => 
         userActivity.recentCategories.includes(p.category) ||
         (p.platforms || []).some(platform => userActivity.recentPlatforms.includes(platform))
@@ -53,13 +66,13 @@ export const SmartRecommendations: React.FC<SmartRecommendationsProps> = ({
       .slice(0, 3);
 
     // High-rated prompts
-    const highRated = prompts
+    const highRated = filteredPrompts
       .filter(p => (p.average_rating || 0) >= 4.0 && (p.rating_count || 0) >= 3)
       .sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0))
       .slice(0, 3);
 
     // AI-suggested (templates and community favorites)
-    const suggested = prompts
+    const suggested = filteredPrompts
       .filter(p => p.is_template || p.is_community)
       .sort((a, b) => (b.copy_count || 0) - (a.copy_count || 0))
       .slice(0, 3);

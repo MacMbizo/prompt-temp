@@ -8,11 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Star, TrendingUp, Filter, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt, PromptVariable } from '@/hooks/usePrompts';
 
 interface CommunityHubProps {
   onPromptSelect: (prompt: Prompt) => void;
 }
+
+// Helper function to parse variables from database Json to PromptVariable[]
+const parseVariables = (variables: any): PromptVariable[] => {
+  if (!variables) return [];
+  if (Array.isArray(variables)) return variables;
+  return [];
+};
 
 export const CommunityHub: React.FC<CommunityHubProps> = ({ onPromptSelect }) => {
   const [communityPrompts, setCommunityPrompts] = useState<Prompt[]>([]);
@@ -54,7 +61,17 @@ export const CommunityHub: React.FC<CommunityHubProps> = ({ onPromptSelect }) =>
         console.error('Error fetching community prompts:', error);
         toast.error('Failed to load community prompts');
       } else {
-        setCommunityPrompts(data || []);
+        // Transform the data to match our Prompt interface
+        const transformedData: Prompt[] = (data || []).map(item => ({
+          ...item,
+          platforms: item.platforms || [],
+          variables: parseVariables(item.variables),
+          is_template: item.is_template || false,
+          is_featured: item.is_featured || false,
+          status: item.status || 'active',
+          usage_count: item.usage_count || 0
+        }));
+        setCommunityPrompts(transformedData);
       }
     } catch (error) {
       console.error('Error fetching community prompts:', error);
