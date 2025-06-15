@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       community_submissions: {
         Row: {
           id: string
@@ -91,6 +121,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_private: boolean | null
           name: string
           updated_at: string
           user_id: string
@@ -100,6 +131,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_private?: boolean | null
           name: string
           updated_at?: string
           user_id: string
@@ -109,6 +141,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_private?: boolean | null
           name?: string
           updated_at?: string
           user_id?: string
@@ -122,6 +155,8 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_trusted: boolean | null
+          reputation_score: number | null
           updated_at: string
           username: string | null
         }
@@ -131,6 +166,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_trusted?: boolean | null
+          reputation_score?: number | null
           updated_at?: string
           username?: string | null
         }
@@ -140,6 +177,8 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_trusted?: boolean | null
+          reputation_score?: number | null
           updated_at?: string
           username?: string | null
         }
@@ -149,6 +188,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_helpful: boolean | null
           prompt_id: string
           rating: number
           review_text: string | null
@@ -158,6 +198,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_helpful?: boolean | null
           prompt_id: string
           rating: number
           review_text?: string | null
@@ -167,6 +208,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_helpful?: boolean | null
           prompt_id?: string
           rating?: number
           review_text?: string | null
@@ -194,12 +236,15 @@ export type Database = {
           folder_id: string | null
           id: string
           is_community: boolean | null
+          is_featured: boolean | null
           is_template: boolean | null
           platforms: string[] | null
           rating_count: number | null
+          status: string | null
           tags: string[] | null
           title: string
           updated_at: string
+          usage_count: number | null
           user_id: string
           variables: Json | null
         }
@@ -213,12 +258,15 @@ export type Database = {
           folder_id?: string | null
           id?: string
           is_community?: boolean | null
+          is_featured?: boolean | null
           is_template?: boolean | null
           platforms?: string[] | null
           rating_count?: number | null
+          status?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
+          usage_count?: number | null
           user_id: string
           variables?: Json | null
         }
@@ -232,12 +280,15 @@ export type Database = {
           folder_id?: string | null
           id?: string
           is_community?: boolean | null
+          is_featured?: boolean | null
           is_template?: boolean | null
           platforms?: string[] | null
           rating_count?: number | null
+          status?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
+          usage_count?: number | null
           user_id?: string
           variables?: Json | null
         }

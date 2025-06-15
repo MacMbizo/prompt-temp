@@ -29,6 +29,9 @@ export interface Prompt {
   copy_count: number; // New field for copy tracking
   average_rating: number | null; // New field for rating average
   rating_count: number; // New field for rating count
+  is_featured: boolean; // New field for featured prompts
+  status: string; // New field for prompt status
+  usage_count: number; // New field for usage tracking
 }
 
 // Helper function to convert database Json to PromptVariable[]
@@ -59,6 +62,7 @@ export const usePrompts = () => {
       const { data, error } = await supabase
         .from('prompts')
         .select('*')
+        .eq('status', 'active') // Only fetch active prompts
         .order('updated_at', { ascending: false });
 
       if (error) {
@@ -70,7 +74,10 @@ export const usePrompts = () => {
           ...item,
           platforms: item.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(item.variables),
-          is_template: item.is_template || false
+          is_template: item.is_template || false,
+          is_featured: item.is_featured || false,
+          status: item.status || 'active',
+          usage_count: item.usage_count || 0
         }));
         setPrompts(transformedData);
       }
@@ -82,7 +89,7 @@ export const usePrompts = () => {
     }
   };
 
-  const addPrompt = async (promptData: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
+  const addPrompt = async (promptData: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'copy_count' | 'average_rating' | 'rating_count' | 'usage_count'>) => {
     if (!user) {
       toast.error('You must be logged in to add prompts');
       return;
@@ -100,6 +107,8 @@ export const usePrompts = () => {
         variables: serializeVariables(promptData.variables),
         is_template: promptData.is_template,
         folder_id: promptData.folder_id,
+        is_featured: promptData.is_featured || false,
+        status: promptData.status || 'active',
         user_id: user.id
       };
 
@@ -118,7 +127,10 @@ export const usePrompts = () => {
           ...data,
           platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
-          is_template: data.is_template || false
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
         };
         setPrompts(prev => [transformedPrompt, ...prev]);
         toast.success('Prompt added successfully!');
@@ -165,7 +177,10 @@ export const usePrompts = () => {
           ...data,
           platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
-          is_template: data.is_template || false
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
         };
         setPrompts(prev => [transformedPrompt, ...prev]);
         toast.success('Prompt duplicated successfully!');
@@ -205,7 +220,10 @@ export const usePrompts = () => {
           ...data,
           platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
-          is_template: data.is_template || false
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
         };
         setPrompts(prev => prev.map(prompt => prompt.id === id ? transformedPrompt : prompt));
         toast.success('Prompt updated successfully!');
@@ -240,7 +258,10 @@ export const usePrompts = () => {
           ...data,
           platforms: data.platforms || [],
           variables: parseVariables(data.variables),
-          is_template: data.is_template || false
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
         };
         setPrompts(prev => prev.map(prompt => prompt.id === promptId ? transformedPrompt : prompt));
         return transformedPrompt;
@@ -276,7 +297,7 @@ export const usePrompts = () => {
     }
   };
 
-  const importPrompts = async (promptsData: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id'>[]) => {
+  const importPrompts = async (promptsData: Omit<Prompt, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'copy_count' | 'average_rating' | 'rating_count' | 'usage_count'>[]) => {
     if (!user) {
       toast.error('You must be logged in to import prompts');
       return;
@@ -293,6 +314,8 @@ export const usePrompts = () => {
         variables: serializeVariables(promptData.variables),
         is_template: promptData.is_template,
         folder_id: promptData.folder_id,
+        is_featured: promptData.is_featured || false,
+        status: promptData.status || 'active',
         user_id: user.id
       }));
 
@@ -310,7 +333,10 @@ export const usePrompts = () => {
           ...item,
           platforms: item.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(item.variables),
-          is_template: item.is_template || false
+          is_template: item.is_template || false,
+          is_featured: item.is_featured || false,
+          status: item.status || 'active',
+          usage_count: item.usage_count || 0
         }));
         
         setPrompts(prev => [...transformedPrompts, ...prev]);
@@ -319,6 +345,78 @@ export const usePrompts = () => {
     } catch (error) {
       console.error('Error importing prompts:', error);
       toast.error('Failed to import prompts');
+    }
+  };
+
+  const markAsFeatured = async (promptId: string, featured: boolean) => {
+    if (!user) {
+      toast.error('You must be logged in to feature prompts');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ is_featured: featured })
+        .eq('id', promptId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating featured status:', error);
+        toast.error('Failed to update featured status');
+      } else {
+        const transformedPrompt: Prompt = {
+          ...data,
+          platforms: data.platforms || [],
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
+        };
+        setPrompts(prev => prev.map(prompt => prompt.id === promptId ? transformedPrompt : prompt));
+        toast.success(`Prompt ${featured ? 'featured' : 'unfeatured'} successfully!`);
+      }
+    } catch (error) {
+      console.error('Error updating featured status:', error);
+      toast.error('Failed to update featured status');
+    }
+  };
+
+  const updatePromptStatus = async (promptId: string, status: string) => {
+    if (!user) {
+      toast.error('You must be logged in to update prompt status');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ status })
+        .eq('id', promptId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating prompt status:', error);
+        toast.error('Failed to update prompt status');
+      } else {
+        const transformedPrompt: Prompt = {
+          ...data,
+          platforms: data.platforms || [],
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false,
+          is_featured: data.is_featured || false,
+          status: data.status || 'active',
+          usage_count: data.usage_count || 0
+        };
+        setPrompts(prev => prev.map(prompt => prompt.id === promptId ? transformedPrompt : prompt));
+        toast.success('Prompt status updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating prompt status:', error);
+      toast.error('Failed to update prompt status');
     }
   };
 
@@ -335,6 +433,8 @@ export const usePrompts = () => {
     updatePromptPlatforms,
     deletePrompt,
     importPrompts,
+    markAsFeatured,
+    updatePromptStatus,
     refetch: fetchPrompts
   };
 };

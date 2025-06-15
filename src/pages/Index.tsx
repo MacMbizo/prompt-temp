@@ -18,6 +18,7 @@ import { PromptOptimizationSuggestions } from '@/components/PromptOptimizationSu
 import { BulkPlatformAssignment } from '@/components/BulkPlatformAssignment';
 import { IntegrationPreparation } from '@/components/IntegrationPreparation';
 import { supabase } from '@/integrations/supabase/client';
+import { FeaturedPrompts } from '@/components/FeaturedPrompts';
 
 const CATEGORIES = [
   'All',
@@ -55,7 +56,7 @@ const Index = () => {
   const { folders } = useFolders();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
-  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportExportModalOpen, setIsImportExportModalOpen] = useState(false);
@@ -64,10 +65,10 @@ const Index = () => {
     let filtered = prompts;
 
     // Filter by folder first
-    if (selectedFolderId === 'uncategorized') {
+    if (selectedFolder === 'uncategorized') {
       filtered = filtered.filter(prompt => !prompt.folder_id);
-    } else if (selectedFolderId && selectedFolderId !== null) {
-      filtered = filtered.filter(prompt => prompt.folder_id === selectedFolderId);
+    } else if (selectedFolder && selectedFolder !== null) {
+      filtered = filtered.filter(prompt => prompt.folder_id === selectedFolder);
     }
 
     // Filter by platforms
@@ -95,7 +96,7 @@ const Index = () => {
     }
 
     return filtered;
-  }, [prompts, selectedCategory, selectedPlatforms, selectedFolderId, searchQuery]);
+  }, [prompts, selectedCategory, selectedPlatforms, selectedFolder, searchQuery]);
 
   // Get prompts for insights (without folder filter for better insights)
   const insightPrompts = useMemo(() => {
@@ -139,7 +140,7 @@ const Index = () => {
     // Add folder_id to the prompt if a folder is selected
     const promptWithFolder = {
       ...newPrompt,
-      folder_id: selectedFolderId === 'uncategorized' ? null : selectedFolderId
+      folder_id: selectedFolder === 'uncategorized' ? null : selectedFolder
     };
     addPrompt(promptWithFolder);
     setIsAddModalOpen(false);
@@ -163,26 +164,26 @@ const Index = () => {
   };
 
   const getCurrentFolderName = () => {
-    if (selectedFolderId === null) return 'All Prompts';
-    if (selectedFolderId === 'uncategorized') return 'Uncategorized';
-    const folder = folders.find(f => f.id === selectedFolderId);
+    if (selectedFolder === null) return 'All Prompts';
+    if (selectedFolder === 'uncategorized') return 'Uncategorized';
+    const folder = folders.find(f => f.id === selectedFolder);
     return folder ? folder.name : 'Unknown Folder';
   };
 
   const getSearchPlaceholder = () => {
     const folderName = getCurrentFolderName();
-    if (selectedFolderId === null) {
+    if (selectedFolder === null) {
       return "Search all prompts, tags, or descriptions...";
     }
     return `Search in ${folderName}...`;
   };
 
   const getPromptCountText = () => {
-    const totalInFolder = selectedFolderId === null 
+    const totalInFolder = selectedFolder === null 
       ? prompts.length 
-      : selectedFolderId === 'uncategorized'
+      : selectedFolder === 'uncategorized'
       ? prompts.filter(p => !p.folder_id).length
-      : prompts.filter(p => p.folder_id === selectedFolderId).length;
+      : prompts.filter(p => p.folder_id === selectedFolder).length;
     
     const filteredCount = filteredPrompts.length;
     
@@ -233,16 +234,16 @@ const Index = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         <Header />
         
         <main className="container mx-auto px-4 py-8">
           <div className="flex gap-6">
             {/* Sidebar */}
             <div className="flex-shrink-0">
-              <FolderSidebar
-                selectedFolderId={selectedFolderId}
-                onFolderSelect={setSelectedFolderId}
+              <FolderSidebar 
+                selectedFolder={selectedFolder}
+                onFolderSelect={setSelectedFolder}
               />
             </div>
 
@@ -254,7 +255,7 @@ const Index = () => {
                     {getCurrentFolderName()}
                   </h1>
                   <p className="text-gray-600 text-lg">
-                    {selectedFolderId === null 
+                    {selectedFolder === null 
                       ? 'Organize and manage your AI prompts by category and use case'
                       : `Prompts in ${getCurrentFolderName()}`
                     }
@@ -358,6 +359,9 @@ const Index = () => {
                 ))}
               </div>
 
+              {/* Featured Prompts Section */}
+              <FeaturedPrompts prompts={prompts} />
+
               {filteredPrompts.length === 0 && !loading && (
                 <div className="text-center py-12">
                   <div className="text-gray-400 text-6xl mb-4">📝</div>
@@ -365,7 +369,7 @@ const Index = () => {
                   <p className="text-gray-500">
                     {searchQuery 
                       ? `No prompts match "${searchQuery}" in ${getCurrentFolderName()}`
-                      : selectedCategory !== 'All' || selectedFolderId
+                      : selectedCategory !== 'All' || selectedFolder
                       ? 'Try adjusting your search, filter, or folder selection'
                       : 'Start by adding your first AI prompt'
                     }
