@@ -2,13 +2,15 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2, Eye, Download, TrendingUp, Crown } from 'lucide-react';
+import { Copy, TrendingUp } from 'lucide-react';
 import { Prompt } from '@/hooks/usePrompts';
+import { PromptCardHeader } from '@/components/PromptCardHeader';
+import { PromptCardBadges } from '@/components/PromptCardBadges';
+import { PromptCardDropdown } from '@/components/PromptCardDropdown';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
 import { PlatformExportModal } from '@/components/PlatformExportModal';
@@ -50,11 +52,13 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
+  const isOwner = user && prompt.user_id === user.id;
+  const canEdit = isOwner && !prompt.is_community;
+
   const handleCopy = async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
       
-      // Track copy history if user is logged in
       if (user && selectedPlatform) {
         await supabase
           .from('copy_history')
@@ -64,7 +68,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
             platform_used: selectedPlatform
           });
 
-        // Award reputation points for using prompts
         await updateReputation(1, 'Used a prompt');
       }
       
@@ -73,14 +76,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
       setIsVariableFillerOpen(false);
     } catch (error) {
       toast.error('Failed to copy prompt');
-    }
-  };
-
-  const handlePreview = () => {
-    if (prompt.is_template && prompt.variables && prompt.variables.length > 0) {
-      setIsVariableFillerOpen(true);
-    } else {
-      setIsPreviewOpen(true);
     }
   };
 
@@ -93,107 +88,26 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
     onUpdate?.();
   };
 
-  const getQualityBadge = () => {
-    const rating = prompt.average_rating || 0;
-    const count = prompt.rating_count || 0;
-    
-    if (count < 3) return null;
-    
-    if (rating >= 4.5) return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">⭐ Premium</Badge>;
-    if (rating >= 4.0) return <Badge variant="secondary" className="bg-green-100 text-green-800">✓ Verified</Badge>;
-    if (rating >= 3.5) return <Badge variant="secondary" className="bg-blue-100 text-blue-800">👍 Good</Badge>;
-    
-    return null;
-  };
-
-  const getUsageBadge = () => {
-    const usage = prompt.usage_count || 0;
-    if (usage >= 100) return <Badge variant="secondary" className="bg-purple-100 text-purple-800"><TrendingUp className="w-3 h-3 mr-1" />Popular</Badge>;
-    if (usage >= 50) return <Badge variant="secondary" className="bg-blue-100 text-blue-800"><TrendingUp className="w-3 h-3 mr-1" />Trending</Badge>;
-    return null;
-  };
-
-  const isOwner = user && prompt.user_id === user.id;
-  const canEdit = isOwner && !prompt.is_community;
-
   return (
     <>
       <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <CardTitle 
-              className="text-lg font-semibold text-gray-800 line-clamp-2 cursor-pointer hover:text-purple-600 transition-colors flex items-center"
-              onClick={() => setIsPreviewOpen(true)}
-            >
-              {prompt.is_featured && (
-                <Crown className="w-4 h-4 mr-2 text-yellow-500" />
-              )}
-              {prompt.title}
-              {prompt.is_community && (
-                <Badge variant="outline" className="ml-2 text-xs">
-                  <Users className="w-3 h-3 mr-1" />
-                  Community
-                </Badge>
-              )}
-            </CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleViewPrompt}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </DropdownMenuItem>
-                {canEdit && (
-                  <DropdownMenuItem onClick={() => {/* TODO: Add edit functionality */}}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={() => onDuplicate(prompt)}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Duplicate
-                </DropdownMenuItem>
-                {prompt.platforms && prompt.platforms.length > 0 && (
-                  <DropdownMenuItem onClick={() => setIsExportModalOpen(true)}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Platform Export
-                  </DropdownMenuItem>
-                )}
-                {!prompt.is_community && isOwner && (
-                  <DropdownMenuItem onClick={() => setIsCommunityModalOpen(true)}>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Submit to Community
-                  </DropdownMenuItem>
-                )}
-                {isOwner && (
-                  <DropdownMenuItem onClick={() => onDelete(prompt.id)}>
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <PromptCardHeader prompt={prompt} onViewPrompt={handleViewPrompt} />
+            <PromptCardDropdown
+              prompt={prompt}
+              isOwner={!!isOwner}
+              canEdit={canEdit}
+              onViewPrompt={handleViewPrompt}
+              onEdit={() => {/* TODO: Add edit functionality */}}
+              onDuplicate={() => onDuplicate(prompt)}
+              onExport={() => setIsExportModalOpen(true)}
+              onCommunitySubmit={() => setIsCommunityModalOpen(true)}
+              onDelete={() => onDelete(prompt.id)}
+            />
           </div>
           
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="text-xs">
-              {prompt.category}
-            </Badge>
-            <div className="flex items-center space-x-1">
-              {prompt.is_featured && (
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
-                  <Crown className="w-3 h-3 mr-1" />
-                  Featured
-                </Badge>
-              )}
-              {getQualityBadge()}
-              {getUsageBadge()}
-            </div>
-          </div>
+          <PromptCardBadges prompt={prompt} />
         </CardHeader>
 
         <CardContent className="flex-1 pb-3">
@@ -238,7 +152,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
             </div>
           )}
 
-          {/* Rating Component */}
           <div className="mb-3">
             <RatingComponent
               promptId={prompt.id}
@@ -284,28 +197,24 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
         </CardFooter>
       </Card>
 
-      {/* Template Variable Filler Modal */}
       <TemplateVariableFiller
         isOpen={isVariableFillerOpen}
         onClose={() => setIsVariableFillerOpen(false)}
         prompt={prompt}
       />
 
-      {/* Community Submission Modal */}
       <CommunitySubmissionModal
         isOpen={isCommunityModalOpen}
         onClose={() => setIsCommunityModalOpen(false)}
         prompt={prompt}
       />
 
-      {/* Platform Export Modal */}
       <PlatformExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         prompt={prompt}
       />
 
-      {/* Prompt Preview/View Modal */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -313,7 +222,6 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
               <span>{prompt.title}</span>
               {prompt.is_community && (
                 <Badge variant="outline" className="text-xs">
-                  <Users className="w-3 h-3 mr-1" />
                   Community
                 </Badge>
               )}
