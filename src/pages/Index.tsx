@@ -1,22 +1,18 @@
+
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
-import { PromptCard } from '@/components/PromptCard';
 import { AddPromptModal } from '@/components/AddPromptModal';
 import { ImportExportModal } from '@/components/ImportExportModal';
-import { CategoryFilter } from '@/components/CategoryFilter';
-import { CategoryInsights } from '@/components/CategoryInsights';
-import { PlatformFilter } from '@/components/PlatformFilter';
-import { SearchBar } from '@/components/SearchBar';
 import { FolderSidebar } from '@/components/FolderSidebar';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { MainContentHeader } from '@/components/MainContent';
+import { FilterSection } from '@/components/FilterSection';
+import { PromptGrid } from '@/components/PromptGrid';
+import { EmptyState } from '@/components/EmptyState';
 import { usePrompts, type Prompt } from '@/hooks/usePrompts';
 import { useFolders } from '@/hooks/useFolders';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PlatformInsightsDashboard } from '@/components/PlatformInsightsDashboard';
 import { PromptOptimizationSuggestions } from '@/components/PromptOptimizationSuggestions';
-import { BulkPlatformAssignment } from '@/components/BulkPlatformAssignment';
-import { IntegrationPreparation } from '@/components/IntegrationPreparation';
 import { supabase } from '@/integrations/supabase/client';
 import { FeaturedPrompts } from '@/components/FeaturedPrompts';
 
@@ -249,80 +245,32 @@ const Index = () => {
 
             {/* Main Content */}
             <div className="flex-1">
-              <div className="flex flex-col lg:flex-row gap-6 mb-8">
-                <div className="flex-1">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-                    {getCurrentFolderName()}
-                  </h1>
-                  <p className="text-gray-600 text-lg">
-                    {selectedFolder === null 
-                      ? 'Organize and manage your AI prompts by category and use case'
-                      : `Prompts in ${getCurrentFolderName()}`
-                    }
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {getPromptCountText()}
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <IntegrationPreparation />
-                  <BulkPlatformAssignment
-                    prompts={prompts}
-                    availablePlatforms={AVAILABLE_PLATFORMS}
-                    onUpdatePrompts={handleBulkPlatformUpdate}
-                  />
-                  <Button
-                    onClick={() => setIsImportExportModalOpen(true)}
-                    variant="outline"
-                    className="border-purple-300 text-purple-600 hover:bg-purple-50"
-                  >
-                    Import/Export
-                  </Button>
-                  <Button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Prompt
-                  </Button>
-                </div>
-              </div>
+              <MainContentHeader
+                currentFolderName={getCurrentFolderName()}
+                promptCountText={getPromptCountText()}
+                prompts={prompts}
+                availablePlatforms={AVAILABLE_PLATFORMS}
+                onBulkPlatformUpdate={handleBulkPlatformUpdate}
+                onImportExportClick={() => setIsImportExportModalOpen(true)}
+                onAddPromptClick={() => setIsAddModalOpen(true)}
+              />
 
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
-                <div className="lg:col-span-2">
-                  <div className="space-y-6">
-                    <CategoryFilter
-                      categories={CATEGORIES}
-                      selectedCategory={selectedCategory}
-                      onCategoryChange={setSelectedCategory}
-                    />
-                    <PlatformFilter
-                      platforms={AVAILABLE_PLATFORMS}
-                      selectedPlatforms={selectedPlatforms}
-                      onPlatformToggle={handlePlatformToggle}
-                      onClearAll={handleClearAllPlatforms}
-                    />
-                  </div>
-                </div>
-                
-                <div className="lg:col-span-3">
-                  <div className="space-y-6">
-                    <SearchBar
-                      searchQuery={searchQuery}
-                      onSearchChange={setSearchQuery}
-                      placeholder={getSearchPlaceholder()}
-                    />
-                    <CategoryInsights
-                      selectedCategory={selectedCategory}
-                      prompts={insightPrompts}
-                      isLoading={loading}
-                    />
-                  </div>
-                </div>
-              </div>
+              <FilterSection
+                categories={CATEGORIES}
+                selectedCategory={selectedCategory}
+                onCategoryChange={setSelectedCategory}
+                platforms={AVAILABLE_PLATFORMS}
+                selectedPlatforms={selectedPlatforms}
+                onPlatformToggle={handlePlatformToggle}
+                onClearAllPlatforms={handleClearAllPlatforms}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                searchPlaceholder={getSearchPlaceholder()}
+                prompts={insightPrompts}
+                isLoading={loading}
+              />
 
-              {/* New Platform Insights Dashboard */}
+              {/* Platform Insights Dashboard */}
               <div className="mb-8">
                 <PlatformInsightsDashboard
                   prompts={insightPrompts}
@@ -332,49 +280,33 @@ const Index = () => {
                 />
               </div>
 
-              {/* Phase 4: Platform Optimization Suggestions */}
+              {/* Platform Optimization Suggestions */}
               {filteredPrompts.length > 0 && selectedPlatforms.length > 0 && (
                 <div className="mb-8">
                   <PromptOptimizationSuggestions
-                    prompt={filteredPrompts[0]} // Show for first filtered prompt as example
+                    prompt={filteredPrompts[0]}
                     selectedPlatforms={selectedPlatforms}
                   />
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPrompts.map((prompt) => (
-                  <div key={prompt.id} id={`prompt-${prompt.id}`} className="transition-all duration-200">
-                    <PromptCard
-                      prompt={{
-                        ...prompt,
-                        createdAt: new Date(prompt.created_at),
-                        updatedAt: new Date(prompt.updated_at)
-                      }}
-                      onDelete={deletePrompt}
-                      onDuplicate={duplicatePrompt}
-                      onUpdate={handlePromptUpdate}
-                    />
-                  </div>
-                ))}
-              </div>
+              <PromptGrid
+                prompts={filteredPrompts}
+                onDelete={deletePrompt}
+                onDuplicate={duplicatePrompt}
+                onUpdate={handlePromptUpdate}
+              />
 
               {/* Featured Prompts Section */}
               <FeaturedPrompts prompts={prompts} />
 
               {filteredPrompts.length === 0 && !loading && (
-                <div className="text-center py-12">
-                  <div className="text-gray-400 text-6xl mb-4">📝</div>
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No prompts found</h3>
-                  <p className="text-gray-500">
-                    {searchQuery 
-                      ? `No prompts match "${searchQuery}" in ${getCurrentFolderName()}`
-                      : selectedCategory !== 'All' || selectedFolder
-                      ? 'Try adjusting your search, filter, or folder selection'
-                      : 'Start by adding your first AI prompt'
-                    }
-                  </p>
-                </div>
+                <EmptyState
+                  searchQuery={searchQuery}
+                  currentFolderName={getCurrentFolderName()}
+                  selectedCategory={selectedCategory}
+                  selectedFolder={selectedFolder}
+                />
               )}
             </div>
           </div>
