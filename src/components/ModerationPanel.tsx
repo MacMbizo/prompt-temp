@@ -30,7 +30,7 @@ interface CommunitySubmission {
   profiles: {
     full_name: string;
     username: string;
-  };
+  } | null;
 }
 
 export const ModerationPanel: React.FC = () => {
@@ -55,7 +55,15 @@ export const ModerationPanel: React.FC = () => {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      setSubmissions(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        status: item.status as 'pending' | 'approved' | 'rejected',
+        profiles: Array.isArray(item.profiles) ? item.profiles[0] || null : item.profiles
+      }));
+      
+      setSubmissions(transformedData);
     } catch (error) {
       console.error('Error fetching submissions:', error);
       toast.error('Failed to load submissions');
