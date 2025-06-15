@@ -122,6 +122,51 @@ export const usePrompts = () => {
     }
   };
 
+  const duplicatePrompt = async (originalPrompt: Prompt) => {
+    if (!user) {
+      toast.error('You must be logged in to duplicate prompts');
+      return;
+    }
+
+    try {
+      // Create a copy with modified title
+      const duplicatedData = {
+        title: `${originalPrompt.title} (Copy)`,
+        description: originalPrompt.description,
+        content: originalPrompt.content,
+        category: originalPrompt.category,
+        tags: originalPrompt.tags,
+        variables: serializeVariables(originalPrompt.variables),
+        is_template: originalPrompt.is_template,
+        folder_id: originalPrompt.folder_id,
+        user_id: user.id
+      };
+
+      const { data, error } = await supabase
+        .from('prompts')
+        .insert([duplicatedData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error duplicating prompt:', error);
+        toast.error('Failed to duplicate prompt');
+      } else {
+        // Transform the returned data to match our Prompt interface
+        const transformedPrompt: Prompt = {
+          ...data,
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false
+        };
+        setPrompts(prev => [transformedPrompt, ...prev]);
+        toast.success('Prompt duplicated successfully!');
+      }
+    } catch (error) {
+      console.error('Error duplicating prompt:', error);
+      toast.error('Failed to duplicate prompt');
+    }
+  };
+
   const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'content' | 'category' | 'tags' | 'variables' | 'is_template' | 'folder_id'>>) => {
     if (!user) {
       toast.error('You must be logged in to update prompts');
@@ -194,6 +239,7 @@ export const usePrompts = () => {
     prompts,
     loading,
     addPrompt,
+    duplicatePrompt,
     updatePrompt,
     deletePrompt,
     refetch: fetchPrompts

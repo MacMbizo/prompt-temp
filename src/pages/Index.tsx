@@ -28,7 +28,7 @@ const CATEGORIES = [
 ];
 
 const Index = () => {
-  const { prompts, loading, addPrompt, deletePrompt } = usePrompts();
+  const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt } = usePrompts();
   const { folders } = useFolders();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
@@ -163,6 +163,7 @@ const Index = () => {
                       updatedAt: new Date(prompt.updated_at)
                     }}
                     onDelete={deletePrompt}
+                    onDuplicate={duplicatePrompt}
                   />
                 ))}
               </div>

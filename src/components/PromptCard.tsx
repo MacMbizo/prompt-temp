@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Pencil, Copy, Wand2 } from 'lucide-react';
+import { Pencil, Copy, Wand2, Files } from 'lucide-react';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import type { Prompt } from '@/hooks/usePrompts';
 
@@ -16,6 +16,7 @@ interface PromptCardProps {
     updatedAt: Date;
   };
   onDelete: (id: string) => void;
+  onDuplicate: (prompt: Prompt) => void;
 }
 
 const getCategoryColor = (category: string) => {
@@ -32,7 +33,7 @@ const getCategoryColor = (category: string) => {
   return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
 };
 
-export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
+export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTemplateFillerOpen, setIsTemplateFillerOpen] = useState(false);
 
@@ -50,6 +51,10 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
       onDelete(prompt.id);
       toast.success('Prompt deleted successfully');
     }
+  };
+
+  const handleDuplicateClick = () => {
+    onDuplicate(prompt);
   };
 
   const handleTemplateUse = () => {
@@ -134,6 +139,15 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
                   </>
                 )}
               </Button>
+              <Button
+                onClick={handleDuplicateClick}
+                variant="outline"
+                size="sm"
+                className="hover:bg-green-50 hover:border-green-300"
+              >
+                <Files className="w-3 h-3 mr-1" />
+                Duplicate
+              </Button>
             </div>
             
             <Button
@@ -203,6 +217,14 @@ export const PromptCard = ({ prompt, onDelete }: PromptCardProps) => {
             </div>
             
             <div className="flex justify-end gap-2 mt-6">
+              <Button
+                onClick={handleDuplicateClick}
+                variant="outline"
+                className="hover:bg-green-50 hover:border-green-300"
+              >
+                <Files className="w-4 h-4 mr-2" />
+                Duplicate
+              </Button>
               <Button
                 onClick={handleTemplateUse}
                 className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
