@@ -18,6 +18,7 @@ export interface Prompt {
   content: string;
   category: string;
   tags: string[];
+  platforms: string[]; // New field for platform compatibility
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -90,6 +91,7 @@ export const usePrompts = () => {
         content: promptData.content,
         category: promptData.category,
         tags: promptData.tags,
+        platforms: promptData.platforms || [], // Handle new platforms field
         variables: serializeVariables(promptData.variables),
         is_template: promptData.is_template,
         folder_id: promptData.folder_id,
@@ -109,6 +111,7 @@ export const usePrompts = () => {
         // Transform the returned data to match our Prompt interface
         const transformedPrompt: Prompt = {
           ...data,
+          platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
           is_template: data.is_template || false
         };
@@ -135,6 +138,7 @@ export const usePrompts = () => {
         content: originalPrompt.content,
         category: originalPrompt.category,
         tags: originalPrompt.tags,
+        platforms: originalPrompt.platforms || [], // Handle new platforms field
         variables: serializeVariables(originalPrompt.variables),
         is_template: originalPrompt.is_template,
         folder_id: originalPrompt.folder_id,
@@ -154,6 +158,7 @@ export const usePrompts = () => {
         // Transform the returned data to match our Prompt interface
         const transformedPrompt: Prompt = {
           ...data,
+          platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
           is_template: data.is_template || false
         };
@@ -193,6 +198,7 @@ export const usePrompts = () => {
         // Transform the returned data to match our Prompt interface
         const transformedPrompt: Prompt = {
           ...data,
+          platforms: data.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(data.variables),
           is_template: data.is_template || false
         };
@@ -243,6 +249,7 @@ export const usePrompts = () => {
         content: promptData.content,
         category: promptData.category,
         tags: promptData.tags,
+        platforms: promptData.platforms || [], // Handle new platforms field
         variables: serializeVariables(promptData.variables),
         is_template: promptData.is_template,
         folder_id: promptData.folder_id,
@@ -261,6 +268,7 @@ export const usePrompts = () => {
         // Transform the returned data to match our Prompt interface
         const transformedPrompts: Prompt[] = (data || []).map(item => ({
           ...item,
+          platforms: item.platforms || [], // Ensure platforms is always an array
           variables: parseVariables(item.variables),
           is_template: item.is_template || false
         }));

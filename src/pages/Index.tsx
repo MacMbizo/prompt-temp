@@ -1,10 +1,10 @@
-
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
 import { AddPromptModal } from '@/components/AddPromptModal';
 import { ImportExportModal } from '@/components/ImportExportModal';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { PlatformFilter } from '@/components/PlatformFilter';
 import { SearchBar } from '@/components/SearchBar';
 import { FolderSidebar } from '@/components/FolderSidebar';
 import { Button } from '@/components/ui/button';
@@ -15,23 +15,40 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 const CATEGORIES = [
   'All',
-  'Writing',
-  'Programming',
+  'Writing & Content',
+  'Programming & Development',
   'System Prompts',
-  'Data Science',
+  'Data Science & Analytics',
   'Image Generation',
-  'Marketing',
-  'Business',
-  'Education',
-  'Creative',
-  'Code Review',
-  'API Documentation'
+  'Marketing & Sales',
+  'Business Strategy',
+  'Education & Learning',
+  'Creative & Storytelling',
+  'Code Review & Debugging',
+  'API Documentation',
+  'Research & Analysis',
+  'Customer Support',
+  'Social Media'
+];
+
+const AVAILABLE_PLATFORMS = [
+  'ChatGPT',
+  'Claude',
+  'Gemini',
+  'GPT-4',
+  'Midjourney',
+  'DALL-E',
+  'Stable Diffusion',
+  'Perplexity',
+  'GitHub Copilot',
+  'Notion AI'
 ];
 
 const Index = () => {
   const { prompts, loading, addPrompt, duplicatePrompt, deletePrompt, importPrompts } = usePrompts();
   const { folders } = useFolders();
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -40,34 +57,51 @@ const Index = () => {
   const filteredPrompts = useMemo(() => {
     let filtered = prompts;
 
-    // Filter by folder first - this is the key fix
+    // Filter by folder first
     if (selectedFolderId === 'uncategorized') {
-      // Show only prompts that have no folder_id (truly uncategorized)
       filtered = filtered.filter(prompt => !prompt.folder_id);
     } else if (selectedFolderId && selectedFolderId !== null) {
-      // Show only prompts in the selected folder
       filtered = filtered.filter(prompt => prompt.folder_id === selectedFolderId);
     }
-    // If selectedFolderId is null, show all prompts (no folder filtering)
 
-    // Then filter by search query within the folder context
+    // Filter by platforms
+    if (selectedPlatforms.length > 0) {
+      filtered = filtered.filter(prompt => 
+        prompt.platforms && prompt.platforms.some(platform => selectedPlatforms.includes(platform))
+      );
+    }
+
+    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(prompt =>
         prompt.title.toLowerCase().includes(query) ||
         prompt.description.toLowerCase().includes(query) ||
         prompt.content.toLowerCase().includes(query) ||
-        prompt.tags.some(tag => tag.toLowerCase().includes(query))
+        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
       );
     }
 
-    // Finally filter by category
+    // Filter by category
     if (selectedCategory !== 'All') {
       filtered = filtered.filter(prompt => prompt.category === selectedCategory);
     }
 
     return filtered;
-  }, [prompts, selectedCategory, selectedFolderId, searchQuery]);
+  }, [prompts, selectedCategory, selectedPlatforms, selectedFolderId, searchQuery]);
+
+  const handlePlatformToggle = (platform: string) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    );
+  };
+
+  const handleClearAllPlatforms = () => {
+    setSelectedPlatforms([]);
+  };
 
   const handleAddPrompt = (newPrompt: any) => {
     // Add folder_id to the prompt if a folder is selected
@@ -103,7 +137,7 @@ const Index = () => {
     
     const filteredCount = filteredPrompts.length;
     
-    if (searchQuery || selectedCategory !== 'All') {
+    if (searchQuery || selectedCategory !== 'All' || selectedPlatforms.length > 0) {
       return `Showing ${filteredCount} of ${totalInFolder} prompts`;
     }
     return `${totalInFolder} prompts`;
@@ -174,16 +208,24 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-6 mb-8">
-                <div className="lg:w-1/4">
-                  <CategoryFilter
-                    categories={CATEGORIES}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
-                  />
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                <div className="lg:col-span-1">
+                  <div className="space-y-6">
+                    <CategoryFilter
+                      categories={CATEGORIES}
+                      selectedCategory={selectedCategory}
+                      onCategoryChange={setSelectedCategory}
+                    />
+                    <PlatformFilter
+                      platforms={AVAILABLE_PLATFORMS}
+                      selectedPlatforms={selectedPlatforms}
+                      onPlatformToggle={handlePlatformToggle}
+                      onClearAll={handleClearAllPlatforms}
+                    />
+                  </div>
                 </div>
                 
-                <div className="lg:w-3/4">
+                <div className="lg:col-span-3">
                   <SearchBar
                     searchQuery={searchQuery}
                     onSearchChange={setSearchQuery}

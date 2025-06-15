@@ -21,16 +21,32 @@ interface PromptCardProps {
 
 const getCategoryColor = (category: string) => {
   const colors = {
-    'Writing': 'bg-green-100 text-green-800',
+    'Writing & Content': 'bg-green-100 text-green-800',
     'Image Generation': 'bg-purple-100 text-purple-800',
-    'Programming': 'bg-blue-100 text-blue-800',
-    'Marketing': 'bg-orange-100 text-orange-800',
-    'Data Science': 'bg-indigo-100 text-indigo-800',
-    'Education': 'bg-yellow-100 text-yellow-800',
-    'Business': 'bg-red-100 text-red-800',
-    'Creative': 'bg-pink-100 text-pink-800',
+    'Programming & Development': 'bg-blue-100 text-blue-800',
+    'Marketing & Sales': 'bg-orange-100 text-orange-800',
+    'Data Science & Analytics': 'bg-indigo-100 text-indigo-800',
+    'Education & Learning': 'bg-yellow-100 text-yellow-800',
+    'Business Strategy': 'bg-red-100 text-red-800',
+    'Creative & Storytelling': 'bg-pink-100 text-pink-800',
   };
   return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+};
+
+const getPlatformIcon = (platform: string) => {
+  const icons = {
+    'ChatGPT': '🤖',
+    'Claude': '🧠',
+    'Gemini': '♊',
+    'Midjourney': '🎨',
+    'DALL-E': '🖼️',
+    'Stable Diffusion': '🌈',
+    'GPT-4': '⚡',
+    'Perplexity': '🔍',
+    'GitHub Copilot': '💻',
+    'Notion AI': '📝',
+  };
+  return icons[platform as keyof typeof icons] || '🔧';
 };
 
 export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) => {
@@ -88,6 +104,24 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
           <p className="text-gray-600 text-sm leading-relaxed">
             {prompt.description}
           </p>
+          
+          {/* Platform badges */}
+          {prompt.platforms && prompt.platforms.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {prompt.platforms.slice(0, 3).map((platform) => (
+                <Badge key={platform} variant="outline" className="text-xs bg-white/50">
+                  <span className="mr-1">{getPlatformIcon(platform)}</span>
+                  {platform}
+                </Badge>
+              ))}
+              {prompt.platforms.length > 3 && (
+                <Badge variant="outline" className="text-xs bg-white/50">
+                  +{prompt.platforms.length - 3} more
+                </Badge>
+              )}
+            </div>
+          )}
+          
           {prompt.is_template && prompt.variables.length > 0 && (
             <div className="mt-2">
               <p className="text-xs text-purple-600 font-medium mb-1">
@@ -174,7 +208,7 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
             <DialogTitle className="text-xl font-semibold text-gray-900">
               {prompt.title}
             </DialogTitle>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
               {prompt.is_template && (
                 <Badge className="bg-purple-100 text-purple-800 text-xs">
                   <Wand2 className="w-3 h-3 mr-1" />
@@ -184,6 +218,12 @@ export const PromptCard = ({ prompt, onDelete, onDuplicate }: PromptCardProps) =
               <Badge className={`${getCategoryColor(prompt.category)} text-xs`}>
                 {prompt.category}
               </Badge>
+              {prompt.platforms && prompt.platforms.map((platform) => (
+                <Badge key={platform} variant="outline" className="text-xs">
+                  <span className="mr-1">{getPlatformIcon(platform)}</span>
+                  {platform}
+                </Badge>
+              ))}
               {prompt.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   #{tag}
