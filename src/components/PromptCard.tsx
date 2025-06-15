@@ -7,11 +7,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2, Eye } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Star, Users, Share2, Eye, Download } from 'lucide-react';
 import { Prompt } from '@/hooks/usePrompts';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
+import { PlatformExportModal } from '@/components/PlatformExportModal';
 import { RatingComponent } from '@/components/RatingComponent';
+import { PlatformBadge } from '@/components/PlatformBadge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatings } from '@/hooks/useRatings';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,22 +32,6 @@ const AVAILABLE_PLATFORMS = [
   'Notion AI'
 ];
 
-const getPlatformIcon = (platform: string) => {
-  const icons = {
-    'ChatGPT': '🤖',
-    'Claude': '🧠',
-    'Gemini': '♊',
-    'Midjourney': '🎨',
-    'DALL-E': '🖼️',
-    'Stable Diffusion': '🌈',
-    'GPT-4': '⚡',
-    'Perplexity': '🔍',
-    'GitHub Copilot': '💻',
-    'Notion AI': '📝',
-  };
-  return icons[platform as keyof typeof icons] || '🔧';
-};
-
 interface PromptCardProps {
   prompt: Prompt & { createdAt: Date; updatedAt: Date };
   onDelete: (id: string) => void;
@@ -59,6 +45,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isVariableFillerOpen, setIsVariableFillerOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
   const handleCopy = async (content: string) => {
@@ -155,6 +142,12 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                   <Copy className="w-4 h-4 mr-2" />
                   Duplicate
                 </DropdownMenuItem>
+                {prompt.platforms && prompt.platforms.length > 0 && (
+                  <DropdownMenuItem onClick={() => setIsExportModalOpen(true)}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Platform Export
+                  </DropdownMenuItem>
+                )}
                 {!prompt.is_community && isOwner && (
                   <DropdownMenuItem onClick={() => setIsCommunityModalOpen(true)}>
                     <Share2 className="w-4 h-4 mr-2" />
@@ -192,12 +185,10 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
 
           {prompt.platforms && prompt.platforms.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-500 mb-1">Compatible with:</p>
+              <p className="text-xs text-gray-500 mb-2">Compatible platforms:</p>
               <div className="flex flex-wrap gap-1">
                 {prompt.platforms.slice(0, 3).map((platform) => (
-                  <Badge key={platform} variant="secondary" className="text-xs">
-                    {getPlatformIcon(platform)} {platform}
-                  </Badge>
+                  <PlatformBadge key={platform} platform={platform} size="sm" />
                 ))}
                 {prompt.platforms.length > 3 && (
                   <Badge variant="secondary" className="text-xs">
@@ -271,6 +262,13 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
         prompt={prompt}
       />
 
+      {/* Platform Export Modal */}
+      <PlatformExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        prompt={prompt}
+      />
+
       {/* Prompt Preview/View Modal */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -308,9 +306,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                 <label className="text-sm font-medium text-gray-700 block mb-2">Compatible Platforms:</label>
                 <div className="flex flex-wrap gap-2">
                   {prompt.platforms.map((platform) => (
-                    <Badge key={platform} variant="secondary">
-                      {getPlatformIcon(platform)} {platform}
-                    </Badge>
+                    <PlatformBadge key={platform} platform={platform} size="md" />
                   ))}
                 </div>
               </div>
@@ -338,7 +334,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
                 <SelectContent>
                   {AVAILABLE_PLATFORMS.map((platform) => (
                     <SelectItem key={platform} value={platform}>
-                      {getPlatformIcon(platform)} {platform}
+                      <PlatformBadge platform={platform} size="sm" />
                     </SelectItem>
                   ))}
                 </SelectContent>

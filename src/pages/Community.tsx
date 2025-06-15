@@ -1,15 +1,15 @@
 
 import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { SearchBar } from '@/components/SearchBar';
-import { Button } from '@/components/ui/button';
-import { Star, TrendingUp, Clock, Award } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { CategoryInsights } from '@/components/CategoryInsights';
 import { supabase } from '@/integrations/supabase/client';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import type { Prompt } from '@/hooks/usePrompts';
 
 const CATEGORIES = [
   'All',
@@ -42,11 +42,17 @@ const AVAILABLE_PLATFORMS = [
   'Notion AI'
 ];
 
+// Helper function to parse variables from Json to PromptVariable[]
+const parseVariables = (variables: any) => {
+  if (!variables) return [];
+  if (Array.isArray(variables)) return variables;
+  return [];
+};
+
 const Community = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'popular'>('rating');
 
   const { data: communityPrompts = [], isLoading } = useQuery({
     queryKey: ['community-prompts'],
@@ -56,29 +62,36 @@ const Community = () => {
         .select(`
           *,
           profiles:user_id (
-            id
+            full_name,
+            username
           )
         `)
         .eq('is_community', true)
-        .eq('moderation_status', 'approved');
+        .order('average_rating', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (error) {
+        console.error('Error fetching community prompts:', error);
+        throw error;
+      }
+
+      // Transform the data to match our Prompt interface
+      return (data || []).map(item => ({
+        ...item,
+        platforms: item.platforms || [],
+        variables: parseVariables(item.variables),
+        is_template: item.is_template || false,
+        tags: item.tags || []
+      })) as Prompt[];
     }
   });
 
   const filteredPrompts = useMemo(() => {
     let filtered = communityPrompts;
 
-    // Filter by category
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(prompt => prompt.category === selectedCategory);
-    }
-
     // Filter by platforms
     if (selectedPlatforms.length > 0) {
       filtered = filtered.filter(prompt => 
-        prompt.platforms && prompt.platforms.some((platform: string) => selectedPlatforms.includes(platform))
+        prompt.platforms && prompt.platforms.some(platform => selectedPlatforms.includes(platform))
       );
     }
 
@@ -89,27 +102,18 @@ const Community = () => {
         prompt.title.toLowerCase().includes(query) ||
         prompt.description?.toLowerCase().includes(query) ||
         prompt.content.toLowerCase().includes(query) ||
-        (prompt.tags && prompt.tags.some((tag: string) => tag.toLowerCase().includes(query))) ||
-        (prompt.platforms && prompt.platforms.some((platform: string) => platform.toLowerCase().includes(query)))
+        prompt.tags.some(tag => tag.toLowerCase().includes(query)) ||
+        (prompt.platforms && prompt.platforms.some(platform => platform.toLowerCase().includes(query)))
       );
     }
 
-    // Sort prompts
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'rating':
-          return (b.average_rating || 0) - (a.average_rating || 0);
-        case 'popular':
-          return (b.copy_count || 0) - (a.copy_count || 0);
-        default:
-          return 0;
-      }
-    });
+    // Filter by category
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(prompt => prompt.category === selectedCategory);
+    }
 
     return filtered;
-  }, [communityPrompts, selectedCategory, selectedPlatforms, searchQuery, sortBy]);
+  }, [communityPrompts, selectedCategory, selectedPlatforms, searchQuery]);
 
   const handlePlatformToggle = (platform: string) => {
     setSelectedPlatforms(prev => 
@@ -121,6 +125,16 @@ const Community = () => {
 
   const handleClearAllPlatforms = () => {
     setSelectedPlatforms([]);
+  };
+
+  const getPromptCountText = () => {
+    const totalPrompts = communityPrompts.length;
+    const filteredCount = filteredPrompts.length;
+    
+    if (searchQuery || selectedCategory !== 'All' || selectedPlatforms.length > 0) {
+      return `Showing ${filteredCount} of ${totalPrompts} community prompts`;
+    }
+    return `${totalPrompts} community prompts`;
   };
 
   if (isLoading) {
@@ -148,49 +162,17 @@ const Community = () => {
               <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
                 Community Prompts
               </h1>
-              <p className="text-gray-600 text-lg">
-                Discover and use prompts shared by the community
+              <p className="text-gray-600 text-lg mb-2">
+                Discover and use high-quality prompts shared by the community
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {filteredPrompts.length} prompts available
+              <p className="text-sm text-gray-500">
+                {getPromptCountText()}
               </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="flex gap-2">
-                <Button
-                  variant={sortBy === 'rating' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSortBy('rating')}
-                  className="text-xs"
-                >
-                  <Star className="w-3 h-3 mr-1" />
-                  Top Rated
-                </Button>
-                <Button
-                  variant={sortBy === 'popular' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSortBy('popular')}
-                  className="text-xs"
-                >
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  Popular
-                </Button>
-                <Button
-                  variant={sortBy === 'newest' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSortBy('newest')}
-                  className="text-xs"
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  Newest
-                </Button>
-              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+            <div className="lg:col-span-2">
               <div className="space-y-6">
                 <CategoryFilter
                   categories={CATEGORIES}
@@ -207,11 +189,18 @@ const Community = () => {
             </div>
             
             <div className="lg:col-span-3">
-              <SearchBar
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-                placeholder="Search community prompts..."
-              />
+              <div className="space-y-6">
+                <SearchBar
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  placeholder="Search community prompts, tags, or descriptions..."
+                />
+                <CategoryInsights
+                  selectedCategory={selectedCategory}
+                  prompts={filteredPrompts}
+                  isLoading={isLoading}
+                />
+              </div>
             </div>
           </div>
 
@@ -224,13 +213,14 @@ const Community = () => {
                   createdAt: new Date(prompt.created_at),
                   updatedAt: new Date(prompt.updated_at)
                 }}
-                onDelete={() => {}}
-                onDuplicate={() => {}}
+                onDelete={() => {}} // Community prompts can't be deleted by users
+                onDuplicate={() => {}} // TODO: Add duplicate to personal collection
+                onUpdate={() => {}} // Community prompts are read-only
               />
             ))}
           </div>
 
-          {filteredPrompts.length === 0 && (
+          {filteredPrompts.length === 0 && !isLoading && (
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">🌟</div>
               <h3 className="text-xl font-semibold text-gray-600 mb-2">No community prompts found</h3>
@@ -238,7 +228,7 @@ const Community = () => {
                 {searchQuery 
                   ? `No prompts match "${searchQuery}"`
                   : selectedCategory !== 'All' || selectedPlatforms.length > 0
-                  ? 'Try adjusting your filters'
+                  ? 'Try adjusting your search or filter selection'
                   : 'Be the first to share a prompt with the community!'
                 }
               </p>
