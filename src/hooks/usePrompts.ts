@@ -216,6 +216,41 @@ export const usePrompts = () => {
     }
   };
 
+  const updatePromptPlatforms = async (promptId: string, platforms: string[]) => {
+    if (!user) {
+      toast.error('You must be logged in to update prompts');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('prompts')
+        .update({ platforms })
+        .eq('id', promptId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating prompt platforms:', error);
+        toast.error('Failed to update prompt platforms');
+        throw error;
+      } else {
+        // Transform the returned data to match our Prompt interface
+        const transformedPrompt: Prompt = {
+          ...data,
+          platforms: data.platforms || [],
+          variables: parseVariables(data.variables),
+          is_template: data.is_template || false
+        };
+        setPrompts(prev => prev.map(prompt => prompt.id === promptId ? transformedPrompt : prompt));
+        return transformedPrompt;
+      }
+    } catch (error) {
+      console.error('Error updating prompt platforms:', error);
+      throw error;
+    }
+  };
+
   const deletePrompt = async (id: string) => {
     if (!user) {
       toast.error('You must be logged in to delete prompts');
@@ -297,6 +332,7 @@ export const usePrompts = () => {
     addPrompt,
     duplicatePrompt,
     updatePrompt,
+    updatePromptPlatforms,
     deletePrompt,
     importPrompts,
     refetch: fetchPrompts

@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Header } from '@/components/Header';
 import { PromptCard } from '@/components/PromptCard';
@@ -15,6 +14,10 @@ import { usePrompts, type Prompt } from '@/hooks/usePrompts';
 import { useFolders } from '@/hooks/useFolders';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { PlatformInsightsDashboard } from '@/components/PlatformInsightsDashboard';
+import { PromptOptimizationSuggestions } from '@/components/PromptOptimizationSuggestions';
+import { BulkPlatformAssignment } from '@/components/BulkPlatformAssignment';
+import { IntegrationPreparation } from '@/components/IntegrationPreparation';
+import { supabase } from '@/integrations/supabase/client';
 
 const CATEGORIES = [
   'All',
@@ -189,6 +192,31 @@ const Index = () => {
     return `${totalInFolder} prompts`;
   };
 
+  const handleBulkPlatformUpdate = async (promptIds: string[], platforms: string[]) => {
+    for (const promptId of promptIds) {
+      const prompt = prompts.find(p => p.id === promptId);
+      if (prompt) {
+        // Merge new platforms with existing ones, avoiding duplicates
+        const existingPlatforms = prompt.platforms || [];
+        const updatedPlatforms = Array.from(new Set([...existingPlatforms, ...platforms]));
+        
+        try {
+          const { error } = await supabase
+            .from('prompts')
+            .update({ platforms: updatedPlatforms })
+            .eq('id', promptId);
+            
+          if (error) throw error;
+        } catch (error) {
+          console.error('Error updating prompt platforms:', error);
+          throw error;
+        }
+      }
+    }
+    // Refresh prompts after bulk update
+    refetch();
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -237,6 +265,12 @@ const Index = () => {
                 </div>
                 
                 <div className="flex items-center gap-4">
+                  <IntegrationPreparation />
+                  <BulkPlatformAssignment
+                    prompts={prompts}
+                    availablePlatforms={AVAILABLE_PLATFORMS}
+                    onUpdatePrompts={handleBulkPlatformUpdate}
+                  />
                   <Button
                     onClick={() => setIsImportExportModalOpen(true)}
                     variant="outline"
@@ -296,6 +330,16 @@ const Index = () => {
                   onPromptSelect={handlePromptSelect}
                 />
               </div>
+
+              {/* Phase 4: Platform Optimization Suggestions */}
+              {filteredPrompts.length > 0 && selectedPlatforms.length > 0 && (
+                <div className="mb-8">
+                  <PromptOptimizationSuggestions
+                    prompt={filteredPrompts[0]} // Show for first filtered prompt as example
+                    selectedPlatforms={selectedPlatforms}
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredPrompts.map((prompt) => (
