@@ -359,6 +359,63 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_searches: {
+        Row: {
+          created_at: string
+          filters: Json | null
+          id: string
+          name: string
+          query: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          name: string
+          query: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          name?: string
+          query?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          filters: Json | null
+          id: string
+          query: string
+          result_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          query: string
+          result_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json | null
+          id?: string
+          query?: string
+          result_count?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -469,6 +526,38 @@ export type Database = {
             view_count: number
           }[]
         }
+      add_to_search_history: {
+        Args: {
+          p_query: string
+          p_filters?: Json
+          p_result_count?: number
+        }
+        Returns: undefined
+      }
+      get_recent_searches: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          query: string
+          filters: Json | null
+          created_at: string
+          result_count: number | null
+        }[]
+      }
+      get_popular_searches: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          query: string
+          search_count: number
+        }[]
+      }
+      cleanup_old_search_history: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

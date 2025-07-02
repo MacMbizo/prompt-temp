@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { CategoryInsights } from '@/components/CategoryInsights';
 import { PlatformFilter } from '@/components/PlatformFilter';
 import { SearchBar } from '@/components/SearchBar';
+import { SearchHistoryPanel } from '@/components/SearchHistoryPanel';
 import { AdvancedSearchFiltersComponent, useAdvancedSearchFilters, type AdvancedSearchFilters } from '@/components/AdvancedSearchFilters';
 import type { Prompt } from '@/hooks/usePrompts';
 
@@ -50,6 +51,8 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
   onAdvancedFiltersChange,
   onAdvancedFiltersApply
 }) => {
+  const [showSearchHistory, setShowSearchHistory] = useState(false);
+  
   const {
     filters: localAdvancedFilters,
     setFilters: setLocalAdvancedFilters,
@@ -64,6 +67,15 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
   // Use external filters if provided, otherwise use local state
   const currentFilters = advancedFilters || localAdvancedFilters;
   const handleFiltersChange = onAdvancedFiltersChange || setLocalAdvancedFilters;
+  
+  const handleSearchFromHistory = (query: string, filters?: any) => {
+    onSearchChange(query);
+    if (filters && handleFiltersChange) {
+      handleFiltersChange(filters);
+    }
+    setShowSearchHistory(false);
+  };
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
       <div className="lg:col-span-2">
@@ -84,15 +96,27 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
       
       <div className="lg:col-span-3">
         <div className="space-y-6">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={onSearchChange}
-            placeholder={searchPlaceholder}
-            suggestions={searchSuggestions}
-            isSearching={isSearching}
-            searchError={searchError}
-            onSuggestionSelect={onSuggestionSelect}
-          />
+          <div className="relative">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={onSearchChange}
+              placeholder={searchPlaceholder}
+              suggestions={searchSuggestions}
+              isSearching={isSearching}
+              searchError={searchError}
+              onSuggestionSelect={onSuggestionSelect}
+              onShowHistory={() => setShowSearchHistory(!showSearchHistory)}
+            />
+            {/* {showSearchHistory && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-2">
+                <SearchHistoryPanel
+                  onSearchSelect={handleSearchFromHistory}
+                  onClose={() => setShowSearchHistory(false)}
+                  currentFilters={currentFilters}
+                />
+              </div>
+            )} */}
+          </div>
           <AdvancedSearchFiltersComponent
             filters={currentFilters}
             onFiltersChange={handleFiltersChange}
