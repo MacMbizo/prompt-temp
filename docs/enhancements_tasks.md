@@ -75,15 +75,23 @@ This document breaks down the features and enhancements listed in `todo_requirem
     - **CF-1.1:** Choose and integrate a real-time collaboration library (e.g., Y.js, Automerge).
     - **CF-1.2:** Update the prompt editor to support real-time text synchronization.
     - **CF-1.3:** Implement presence indicators to show active collaborators.
-- **Task ID:** CF-2
+- **Task ID:** CF-2 ✅ **COMPLETED**
   - **Description:** Add version control for prompts with revision history.
   - **Priority:** High
   - **Dependencies:** None
   - **Complexity:** 6
+  - **Status:** ✅ Completed - Full version control system implemented
+  - **Implementation:** 
+    - Created `prompt_versions` table with automatic versioning triggers
+    - Added `current_version` and `version_count` fields to prompts table
+    - Implemented `usePromptVersions` hook for version management
+    - Created `VersionHistoryModal` component for viewing and managing versions
+    - Added version history button to prompt cards for owners
+    - Includes features: automatic versioning, manual version creation, version comparison, and restoration
   - **Sub-tasks:**
-    - **CF-2.1:** Design a data model for storing prompt versions.
-    - **CF-2.2:** Implement the logic to save new versions on prompt changes.
-    - **CF-2.3:** Create a UI to view revision history and rollback to previous versions.
+    - **CF-2.1:** ✅ Design a data model for storing prompt versions.
+    - **CF-2.2:** ✅ Implement the logic to save new versions on prompt changes.
+    - **CF-2.3:** ✅ Create a UI to view revision history and rollback to previous versions.
 - **Task ID:** CF-3
   - **Description:** Implement team workspaces with role-based access.
   - **Priority:** High
@@ -106,11 +114,13 @@ This document breaks down the features and enhancements listed in `todo_requirem
     - **IET-1.2:** Design a generic integration architecture.
     - **IET-1.3:** Implement the integration for the first platform.
     - **IET-1.4:** Add a UI for managing platform integrations and API keys.
-- **Task ID:** IET-2
+- **Task ID:** IET-2 ✅ **COMPLETED**
   - **Description:** Implement import/export functionality for prompts.
   - **Priority:** Medium
   - **Dependencies:** None
   - **Complexity:** 4
+  - **Status:** ✅ Completed - Enhanced with CSV support
+  - **Implementation:** Added support for both JSON and CSV formats in import/export functionality
 - **Task ID:** IET-3
   - **Description:** Enable single sign-on (SSO) for enterprise users.
   - **Priority:** Medium

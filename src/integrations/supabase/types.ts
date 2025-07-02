@@ -687,6 +687,24 @@ export interface Prompt {
   is_featured: boolean;
   status: string;
   usage_count: number;
+  current_version: number;
+  version_count: number;
+}
+
+export interface PromptVersion {
+  id: string;
+  prompt_id: string;
+  version_number: number;
+  title: string;
+  description: string;
+  prompt_text: string;
+  category: string;
+  tags: string[];
+  platforms: string[];
+  variables: PromptVariable[];
+  change_summary: string | null;
+  created_at: string;
+  created_by: string;
 }
 
 export type CompositeTypes<

@@ -15,6 +15,7 @@ import { PromptCardDropdown } from '@/components/PromptCardDropdown';
 import { TemplateVariableFiller } from '@/components/TemplateVariableFiller';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
 import { PlatformExportModal } from '@/components/PlatformExportModal';
+import { VersionHistoryModal } from '@/components/VersionHistoryModal';
 import { RatingComponent } from '@/components/RatingComponent';
 import { PlatformBadge } from '@/components/PlatformBadge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +36,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
   const [isVariableFillerOpen, setIsVariableFillerOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
 
   const isOwner = user && prompt.user_id === user.id;
   const canEdit = isOwner && !prompt.is_community;
@@ -63,6 +65,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
               onDuplicate={() => onDuplicate(prompt)}
               onExport={() => setIsExportModalOpen(true)}
               onCommunitySubmit={() => setIsCommunityModalOpen(true)}
+              onVersionHistory={() => setIsVersionHistoryOpen(true)}
               onDelete={() => onDelete(prompt.id)}
             />
           </div>
@@ -174,6 +177,13 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         prompt={prompt}
+      />
+
+      <VersionHistoryModal
+        isOpen={isVersionHistoryOpen}
+        onClose={() => setIsVersionHistoryOpen(false)}
+        promptId={prompt.id}
+        onUpdate={onUpdate}
       />
 
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>

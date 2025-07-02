@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Copy, Edit, MoreVertical, Trash2, Eye, Download, Share2 } from 'lucide-react';
+import { Copy, Edit, MoreVertical, Trash2, Eye, Download, Share2, History } from 'lucide-react';
 import type { Prompt } from '@/hooks/usePrompts';
 
 interface PromptCardDropdownProps {
@@ -14,6 +14,7 @@ interface PromptCardDropdownProps {
   onDuplicate: () => void;
   onExport: () => void;
   onCommunitySubmit: () => void;
+  onVersionHistory: () => void;
   onDelete: () => void;
 }
 
@@ -26,6 +27,7 @@ export const PromptCardDropdown: React.FC<PromptCardDropdownProps> = ({
   onDuplicate,
   onExport,
   onCommunitySubmit,
+  onVersionHistory,
   onDelete
 }) => {
   return (
@@ -44,6 +46,12 @@ export const PromptCardDropdown: React.FC<PromptCardDropdownProps> = ({
           <DropdownMenuItem onClick={onEdit}>
             <Edit className="w-4 h-4 mr-2" />
             Edit
+          </DropdownMenuItem>
+        )}
+        {isOwner && (
+          <DropdownMenuItem onClick={onVersionHistory}>
+            <History className="w-4 h-4 mr-2" />
+            Version History
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={onDuplicate}>

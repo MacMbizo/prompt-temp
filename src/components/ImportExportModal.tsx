@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Upload, FileText, AlertTriangle } from 'lucide-react';
-import { useImportExport, type ExportData } from '@/hooks/useImportExport';
+import { useImportExport, type ExportData, type ExportFormat, type ImportFormat } from '@/hooks/useImportExport';
 import type { Prompt } from '@/hooks/usePrompts';
 
 interface ImportExportModalProps {
@@ -24,16 +25,18 @@ export const ImportExportModal = ({
 }: ImportExportModalProps) => {
   const { exportPrompts, importPrompts, isExporting, isImporting } = useImportExport();
   const [importData, setImportData] = useState<ExportData | null>(null);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>('json');
+  const [importFormat, setImportFormat] = useState<ImportFormat>('json');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExport = () => {
-    exportPrompts(prompts);
+    exportPrompts(prompts, exportFormat);
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const data = await importPrompts(file);
+      const data = await importPrompts(file, importFormat);
       setImportData(data);
     }
   };
@@ -48,7 +51,20 @@ export const ImportExportModal = ({
 
   const handleModalClose = () => {
     setImportData(null);
+    setExportFormat('json');
+    setImportFormat('json');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     onClose();
+  };
+
+  const handleImportFormatChange = (value: ImportFormat) => {
+    setImportFormat(value);
+    setImportData(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -65,32 +81,60 @@ export const ImportExportModal = ({
           </TabsList>
 
           <TabsContent value="export" className="space-y-4">
-            <div className="text-center py-6">
-              <FileText className="w-12 h-12 mx-auto text-blue-500 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Export Your Prompts</h3>
-              <p className="text-gray-600 mb-4">
-                Download all your prompts ({prompts.length}) as a JSON file for backup or sharing.
-              </p>
-              <Button
-                onClick={handleExport}
-                disabled={isExporting || prompts.length === 0}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export Prompts'}
-              </Button>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="export-format">Export Format</Label>
+                <Select value={exportFormat} onValueChange={(value: ExportFormat) => setExportFormat(value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="json">JSON (.json)</SelectItem>
+                    <SelectItem value="csv">CSV (.csv)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="text-center py-6">
+                <FileText className="w-12 h-12 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-lg font-medium mb-2">Export Your Prompts</h3>
+                <p className="text-gray-600 mb-4">
+                  Download all your prompts ({prompts.length}) as a {exportFormat.toUpperCase()} file for backup or sharing.
+                </p>
+                <Button
+                  onClick={handleExport}
+                  disabled={isExporting || prompts.length === 0}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  {isExporting ? 'Exporting...' : `Export as ${exportFormat.toUpperCase()}`}
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="import" className="space-y-4">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="import-file">Select JSON File</Label>
+                <Label htmlFor="import-format">Import Format</Label>
+                <Select value={importFormat} onValueChange={handleImportFormatChange}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="json">JSON (.json)</SelectItem>
+                    <SelectItem value="csv">CSV (.csv)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="import-file">Select {importFormat.toUpperCase()} File</Label>
                 <Input
                   ref={fileInputRef}
                   id="import-file"
                   type="file"
-                  accept=".json"
+                  accept={importFormat === 'csv' ? '.csv' : '.json'}
                   onChange={handleFileSelect}
                   disabled={isImporting}
                   className="mt-1"
