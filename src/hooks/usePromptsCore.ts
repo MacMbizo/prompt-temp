@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { Prompt, PromptVariable } from './usePrompts';
+import type { Prompt, PromptVariable } from '@/integrations/supabase/types';
 
 // Helper function to convert database Json to PromptVariable[]
 const parseVariables = (variables: any): PromptVariable[] => {

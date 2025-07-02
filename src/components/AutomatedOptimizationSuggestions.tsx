@@ -75,7 +75,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
   const analyzeStructure = (): OptimizationSuggestion[] => {
     const suggestions: OptimizationSuggestion[] = [];
-    const content = prompt.content;
+    const content = prompt.prompt_text;
 
     // Check for clear role definition
     if (!content.toLowerCase().includes('you are') && !content.toLowerCase().includes('act as')) {
@@ -129,7 +129,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
   const analyzeClarity = (): OptimizationSuggestion[] => {
     const suggestions: OptimizationSuggestion[] = [];
-    const content = prompt.content;
+    const content = prompt.prompt_text;
 
     // Check for vague language
     const vagueWords = ['good', 'nice', 'better', 'improve', 'enhance', 'optimize'];
@@ -176,7 +176,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
   const analyzeSpecificity = (): OptimizationSuggestion[] => {
     const suggestions: OptimizationSuggestion[] = [];
-    const content = prompt.content;
+    const content = prompt.prompt_text;
 
     // Check for examples
     if (!content.toLowerCase().includes('example') && !content.toLowerCase().includes('for instance')) {
@@ -232,7 +232,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
     // Platform-specific optimizations
     if (prompt.platforms?.includes('Midjourney') || prompt.platforms?.includes('DALL-E')) {
-      if (!prompt.content.toLowerCase().includes('style') && !prompt.content.toLowerCase().includes('aspect ratio')) {
+      if (!prompt.prompt_text.toLowerCase().includes('style') && !prompt.prompt_text.toLowerCase().includes('aspect ratio')) {
         suggestions.push({
           id: 'platform-image',
           type: 'platform',
@@ -242,7 +242,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
           effort: 'easy',
           currentIssue: 'Missing image generation parameters',
           suggestedFix: 'Add style, aspect ratio, and quality parameters',
-          optimizedContent: `${prompt.content}\n\nStyle: [specific art style]\nAspect ratio: [e.g., 16:9, 1:1]\nQuality: high detail`,
+          optimizedContent: `${prompt.prompt_text}\n\nStyle: [specific art style]\nAspect ratio: [e.g., 16:9, 1:1]\nQuality: high detail`,
           confidence: 0.85
         });
       }
@@ -253,7 +253,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
   const analyzeVariables = (): OptimizationSuggestion[] => {
     const suggestions: OptimizationSuggestion[] = [];
-    const content = prompt.content;
+    const content = prompt.prompt_text;
 
     // Check for hardcoded values that could be variables
     const patterns = [
@@ -306,7 +306,7 @@ export const AutomatedOptimizationSuggestions: React.FC<AutomatedOptimizationSug
 
   const applyOptimization = (suggestion: OptimizationSuggestion) => {
     const optimizedPrompt: Partial<Prompt> = {
-      content: suggestion.optimizedContent || prompt.content,
+      prompt_text: suggestion.optimizedContent || prompt.prompt_text,
       // Add suggested improvements to description
       description: `${prompt.description} [Optimized: ${suggestion.title}]`
     };

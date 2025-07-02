@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Calendar } from 'lucide-react';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 interface UsageTrendsChartProps {
   prompts: Prompt[];

@@ -23,7 +23,7 @@ interface CommunitySubmission {
   prompt: {
     title: string;
     description: string;
-    content: string;
+    prompt_text: string;
     category: string;
     tags: string[];
   };
@@ -49,7 +49,7 @@ export const ModerationPanel: React.FC = () => {
         .from('community_submissions')
         .select(`
           *,
-          prompt:prompts(title, description, content, category, tags),
+          prompt:prompts(title, description, prompt_text, category, tags),
           profiles!community_submissions_submitted_by_fkey(full_name, username)
         `)
         .order('submitted_at', { ascending: false });
@@ -179,7 +179,7 @@ export const ModerationPanel: React.FC = () => {
 
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm font-medium text-gray-700 mb-1">Prompt Content:</p>
-                <p className="text-sm text-gray-900 line-clamp-3">{submission.prompt.content}</p>
+                <p className="text-sm text-gray-900 line-clamp-3">{submission.prompt.prompt_text}</p>
               </div>
 
               <div className="flex flex-wrap gap-2">

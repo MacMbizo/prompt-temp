@@ -2,7 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Prompt } from './usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 export const usePromptsMutations = (
   prompts: Prompt[],
@@ -22,7 +22,7 @@ export const usePromptsMutations = (
       const dataForInsert = {
         title: promptData.title,
         description: promptData.description,
-        content: promptData.content,
+        prompt_text: promptData.prompt_text,
         category: promptData.category,
         tags: promptData.tags,
         platforms: promptData.platforms || [],
@@ -72,7 +72,7 @@ export const usePromptsMutations = (
       const duplicatedData = {
         title: `${originalPrompt.title} (Copy)`,
         description: originalPrompt.description,
-        content: originalPrompt.content,
+        prompt_text: originalPrompt.prompt_text,
         category: originalPrompt.category,
         tags: originalPrompt.tags,
         platforms: originalPrompt.platforms || [],

@@ -2,7 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Prompt } from './usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 export const usePromptsImport = (
   setPrompts: React.Dispatch<React.SetStateAction<Prompt[]>>,

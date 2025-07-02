@@ -32,14 +32,14 @@ export const TemplateVariableFiller = ({ isOpen, onClose, prompt }: TemplateVari
 
   useEffect(() => {
     // Generate the prompt with current variable values
-    let generated = prompt.content;
+    let generated = prompt.prompt_text;
     prompt.variables.forEach(variable => {
       const value = variableValues[variable.name] || `{${variable.name}}`;
       const regex = new RegExp(`\\{${variable.name}\\}`, 'g');
       generated = generated.replace(regex, value);
     });
     setGeneratedPrompt(generated);
-  }, [prompt.content, prompt.variables, variableValues]);
+  }, [prompt.prompt_text, prompt.variables, variableValues]);
 
   const handleVariableChange = (variableName: string, value: string) => {
     setVariableValues(prev => ({

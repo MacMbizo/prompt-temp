@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import { usePrompts } from './usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 export const useTagSuggestions = () => {
   const { prompts } = usePrompts();

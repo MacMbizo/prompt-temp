@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 interface CacheEntry {
   data: Prompt[];

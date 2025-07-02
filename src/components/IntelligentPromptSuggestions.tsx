@@ -118,7 +118,7 @@ export const IntelligentPromptSuggestions: React.FC<IntelligentPromptSuggestions
     
     // Analyze prompts that could be improved
     userPrompts.forEach(prompt => {
-      if (prompt.content.length < 100) {
+      if (prompt.prompt_text.length < 100) {
         suggestions.push({
           id: `improve-${prompt.id}`,
           title: `Enhanced ${prompt.title}`,
@@ -137,7 +137,7 @@ export const IntelligentPromptSuggestions: React.FC<IntelligentPromptSuggestions
   };
 
   const generateEnhancedContent = (prompt: Prompt) => {
-    return `${prompt.content}
+    return `${prompt.prompt_text}
 
 Additional context:
 - Provide specific examples for better results

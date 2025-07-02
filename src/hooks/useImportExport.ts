@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 export interface ExportData {
   version: string;
@@ -22,7 +22,7 @@ export const useImportExport = () => {
         prompts: prompts.map(prompt => ({
           title: prompt.title,
           description: prompt.description,
-          content: prompt.content,
+          prompt_text: prompt.prompt_text,
           category: prompt.category,
           tags: prompt.tags,
           platforms: prompt.platforms,
@@ -73,7 +73,7 @@ export const useImportExport = () => {
 
       // Validate each prompt has required fields and add defaults for new fields
       for (const prompt of importData.prompts) {
-        if (!prompt.title || !prompt.content || !prompt.category) {
+        if (!prompt.title || !prompt.prompt_text || !prompt.category) {
           throw new Error('Invalid prompt data - missing required fields');
         }
         // Ensure platforms field exists for backward compatibility

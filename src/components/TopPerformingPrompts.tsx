@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Copy, TrendingUp } from 'lucide-react';
 import { PlatformBadge } from '@/components/PlatformBadge';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 interface TopPerformingPromptsProps {
   prompts: Prompt[];

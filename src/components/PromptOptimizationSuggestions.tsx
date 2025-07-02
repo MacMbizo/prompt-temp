@@ -78,17 +78,17 @@ export const PromptOptimizationSuggestions: React.FC<PromptOptimizationSuggestio
         if (!rules) {
           return {
             platform,
-            originalPrompt: prompt.content,
-            optimizedPrompt: prompt.content,
+            originalPrompt: prompt.prompt_text,
+        optimizedPrompt: prompt.prompt_text,
             improvements: ['Platform-specific optimization not available'],
             confidence: 0.5
           };
         }
 
-        const optimizedPrompt = `${rules.prefix}${prompt.content}${rules.suffix}`;
+        const optimizedPrompt = `${rules.prefix}${prompt.prompt_text}${rules.suffix}`;
         return {
           platform,
-          originalPrompt: prompt.content,
+          originalPrompt: prompt.prompt_text,
           optimizedPrompt,
           improvements: rules.improvements,
           confidence: Math.random() * 0.3 + 0.7 // 70-100% confidence

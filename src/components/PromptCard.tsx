@@ -118,7 +118,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
           )}
 
           <p className="text-sm text-gray-700 mb-3 line-clamp-3">
-            {prompt.content}
+            {prompt.prompt_text}
           </p>
 
           {prompt.platforms && prompt.platforms.length > 0 && (
@@ -239,7 +239,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
             <div>
               <label className="text-sm font-medium text-gray-700 block mb-2">Prompt Content:</label>
               <Textarea
-                value={prompt.content}
+                value={prompt.prompt_text}
                 readOnly
                 className="min-h-[200px]"
               />
@@ -286,7 +286,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
             </div>
 
             <Button 
-              onClick={() => handleCopy(prompt.content)}
+              onClick={() => handleCopy(prompt.prompt_text)}
               className="w-full"
               disabled={!selectedPlatform}
             >

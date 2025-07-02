@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Users, Star, TrendingUp, Award, Share, Plus } from 'lucide-react';
-import { usePrompts, type Prompt } from '@/hooks/usePrompts';
+import { usePrompts } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 import { CommunitySubmissionModal } from '@/components/CommunitySubmissionModal';
 import { toast } from 'sonner';
 

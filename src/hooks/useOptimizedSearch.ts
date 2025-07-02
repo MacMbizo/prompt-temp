@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePromptCache } from './usePromptCache';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 interface UseOptimizedSearchProps {
   prompts: Prompt[];

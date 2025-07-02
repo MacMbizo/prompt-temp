@@ -2,7 +2,7 @@
 import React, { useMemo } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import { PromptCard } from '@/components/PromptCard';
-import type { Prompt } from '@/hooks/usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 interface VirtualizedPromptGridProps {
   prompts: Prompt[];

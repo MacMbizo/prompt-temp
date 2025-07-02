@@ -265,7 +265,7 @@ export type Database = {
         Row: {
           average_rating: number | null
           category: string
-          content: string
+          prompt_text: string
           copy_count: number | null
           created_at: string
           description: string | null
@@ -287,7 +287,7 @@ export type Database = {
         Insert: {
           average_rating?: number | null
           category: string
-          content: string
+          prompt_text: string
           copy_count?: number | null
           created_at?: string
           description?: string | null
@@ -309,7 +309,7 @@ export type Database = {
         Update: {
           average_rating?: number | null
           category?: string
-          content?: string
+          prompt_text?: string
           copy_count?: number | null
           created_at?: string
           description?: string | null
@@ -375,6 +375,100 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_prompts_by_search_term:
+        {
+          Args: {
+            search_term: string
+          }
+          Returns: {
+            category_id: string | null
+            prompt_text: string
+            created_at: string
+            description: string | null
+            folder_id: string | null
+            id: string
+            is_private: boolean
+            name: string
+            optimized_count: number
+            platform_id: string | null
+            share_count: number
+            slug: string
+            updated_at: string
+            user_id: string
+            variable_names: Json | null
+            view_count: number
+          }[]
+        }
+      get_prompts_for_user:
+        {
+          Args: {
+            user_id: string
+          }
+          Returns: {
+            category_id: string | null
+            prompt_text: string
+            created_at: string
+            description: string | null
+            folder_id: string | null
+            id: string
+            is_private: boolean
+            name: string
+            optimized_count: number
+            platform_id: string | null
+            share_count: number
+            slug: string
+            updated_at: string
+            user_id: string
+            variable_names: Json | null
+            view_count: number
+          }[]
+        }
+      get_public_prompts:
+        {
+          Args: Record<PropertyKey, never>
+          Returns: {
+            category_id: string | null
+            prompt_text: string
+            created_at: string
+            description: string | null
+            folder_id: string | null
+            id: string
+            is_private: boolean
+            name: string
+            optimized_count: number
+            platform_id: string | null
+            share_count: number
+            slug: string
+            updated_at: string
+            user_id: string
+            variable_names: Json | null
+            view_count: number
+          }[]
+        }
+      search_prompts:
+        {
+          Args: {
+            query: string
+          }
+          Returns: {
+            category_id: string | null
+            prompt_text: string
+            created_at: string
+            description: string | null
+            folder_id: string | null
+            id: string
+            is_private: boolean
+            name: string
+            optimized_count: number
+            platform_id: string | null
+            share_count: number
+            slug: string
+            updated_at: string
+            user_id: string
+            variable_names: Json | null
+            view_count: number
+          }[]
+        }
     }
     Enums: {
       [_ in never]: never
@@ -475,6 +569,37 @@ export type Enums<
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
+export interface PromptVariable {
+  name: string;
+  description: string;
+  type: 'text' | 'select' | 'number';
+  defaultValue?: string;
+  options?: string[];
+}
+
+export interface Prompt {
+  id: string;
+  title: string;
+  description: string;
+  prompt_text: string;
+  category: string;
+  tags: string[];
+  platforms: string[];
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  variables: PromptVariable[];
+  is_template: boolean;
+  folder_id: string | null;
+  is_community: boolean;
+  copy_count: number;
+  average_rating: number | null;
+  rating_count: number;
+  is_featured: boolean;
+  status: string;
+  usage_count: number;
+}
+
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
@@ -489,6 +614,8 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+
 
 export const Constants = {
   public: {

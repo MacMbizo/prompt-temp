@@ -49,7 +49,7 @@ export const FeaturedPrompts: React.FC<FeaturedPromptsProps> = ({ prompts }) => 
             
             <CardContent>
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                {prompt.description || prompt.content}
+                {prompt.description || prompt.prompt_text}
               </p>
               
               {prompt.platforms && prompt.platforms.length > 0 && (

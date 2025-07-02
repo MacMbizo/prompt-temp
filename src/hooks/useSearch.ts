@@ -1,14 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../integrations/supabase/supabaseClient';
 
-export interface Prompt {
-  id: string;
-  title: string;
-  prompt_text: string;
-  category: string;
-  platform: string;
-  created_at: string;
-}
+import type { Prompt } from '@/integrations/supabase/types';
 
 export const useSearch = () => {
   const [searchResults, setSearchResults] = useState<Prompt[]>([]);

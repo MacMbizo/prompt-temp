@@ -37,7 +37,7 @@ export const PlatformExportModal: React.FC<PlatformExportModalProps> = ({
   const [optimizedPrompt, setOptimizedPrompt] = useState('');
 
   const generateOptimizedPrompt = (platform: string) => {
-    let optimized = prompt.content;
+    let optimized = prompt.prompt_text;
     
     // Basic optimization based on platform
     switch (platform) {

@@ -107,7 +107,7 @@ export const SmartCategorizationSuggestions: React.FC<SmartCategorizationSuggest
   };
 
   const analyzeCategoryMatch = (prompt: Prompt): CategorizationSuggestion | null => {
-    const content = `${prompt.title} ${prompt.description} ${prompt.content}`.toLowerCase();
+    const content = `${prompt.title} ${prompt.description} ${prompt.prompt_text}`.toLowerCase();
     
     let bestMatch = '';
     let bestScore = 0;
@@ -142,7 +142,7 @@ export const SmartCategorizationSuggestions: React.FC<SmartCategorizationSuggest
 
   const analyzeTagSuggestions = (prompt: Prompt): CategorizationSuggestion[] => {
     const suggestions: CategorizationSuggestion[] = [];
-    const content = `${prompt.title} ${prompt.description} ${prompt.content}`.toLowerCase();
+    const content = `${prompt.title} ${prompt.description} ${prompt.prompt_text}`.toLowerCase();
     const currentTags = prompt.tags || [];
     
     // Extract potential tags from content
@@ -201,7 +201,7 @@ export const SmartCategorizationSuggestions: React.FC<SmartCategorizationSuggest
 
   const analyzePlatformRecommendations = (prompt: Prompt): CategorizationSuggestion[] => {
     const suggestions: CategorizationSuggestion[] = [];
-    const content = `${prompt.title} ${prompt.description} ${prompt.content}`.toLowerCase();
+    const content = `${prompt.title} ${prompt.description} ${prompt.prompt_text}`.toLowerCase();
     const currentPlatforms = prompt.platforms || [];
     
     const recommendedPlatforms: string[] = [];

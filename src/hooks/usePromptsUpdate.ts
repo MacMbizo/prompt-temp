@@ -2,7 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import type { Prompt } from './usePrompts';
+import type { Prompt } from '@/integrations/supabase/types';
 
 export const usePromptsUpdate = (
   setPrompts: React.Dispatch<React.SetStateAction<Prompt[]>>,
@@ -11,7 +11,7 @@ export const usePromptsUpdate = (
 ) => {
   const { user } = useAuth();
 
-  const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'content' | 'category' | 'tags' | 'platforms' | 'variables' | 'is_template' | 'folder_id'>>) => {
+  const updatePrompt = async (id: string, updates: Partial<Pick<Prompt, 'title' | 'description' | 'prompt_text' | 'category' | 'tags' | 'platforms' | 'variables' | 'is_template' | 'folder_id'>>) => {
     if (!user) {
       toast.error('You must be logged in to update prompts');
       return;
