@@ -14,32 +14,34 @@ import type { Prompt, PromptVariable } from '@/hooks/usePrompts';
 interface TemplateVariableFillerProps {
   isOpen: boolean;
   onClose: () => void;
-  prompt: Prompt;
+  promptText: string;
+  variables: PromptVariable[];
+  onCopy: (text: string) => void;
 }
 
-export const TemplateVariableFiller = ({ isOpen, onClose, prompt }: TemplateVariableFillerProps) => {
+export const TemplateVariableFiller = ({ isOpen, onClose, promptText, variables, onCopy }: TemplateVariableFillerProps) => {
   const [variableValues, setVariableValues] = useState<Record<string, string>>({});
   const [generatedPrompt, setGeneratedPrompt] = useState('');
 
   useEffect(() => {
     // Initialize with default values
     const defaults: Record<string, string> = {};
-    prompt.variables.forEach(variable => {
+    variables.forEach(variable => {
       defaults[variable.name] = variable.defaultValue || '';
     });
     setVariableValues(defaults);
-  }, [prompt.variables]);
+  }, [variables]);
 
   useEffect(() => {
     // Generate the prompt with current variable values
-    let generated = prompt.prompt_text;
-    prompt.variables.forEach(variable => {
+    let generated = promptText;
+    variables.forEach(variable => {
       const value = variableValues[variable.name] || `{${variable.name}}`;
-      const regex = new RegExp(`\\{${variable.name}\\}`, 'g');
+      const regex = new RegExp(`\{${variable.name}\}`, 'g');
       generated = generated.replace(regex, value);
     });
     setGeneratedPrompt(generated);
-  }, [prompt.prompt_text, prompt.variables, variableValues]);
+  }, [promptText, variables, variableValues]);
 
   const handleVariableChange = (variableName: string, value: string) => {
     setVariableValues(prev => ({
@@ -48,14 +50,10 @@ export const TemplateVariableFiller = ({ isOpen, onClose, prompt }: TemplateVari
     }));
   };
 
-  const handleCopyPrompt = async () => {
-    try {
-      await navigator.clipboard.writeText(generatedPrompt);
-      toast.success('Generated prompt copied to clipboard!');
-      onClose();
-    } catch (error) {
-      toast.error('Failed to copy prompt');
-    }
+  const handleCopyPrompt = () => {
+    onCopy(generatedPrompt);
+    toast.success('Generated prompt copied to clipboard!');
+    onClose();
   };
 
   const renderVariableInput = (variable: PromptVariable) => {
@@ -107,7 +105,7 @@ export const TemplateVariableFiller = ({ isOpen, onClose, prompt }: TemplateVari
           </DialogTitle>
           <div className="flex items-center gap-2 mt-2">
             <Badge className="bg-purple-100 text-purple-800 text-xs">Template</Badge>
-            <span className="text-sm text-gray-600">{prompt.title}</span>
+            <span className="text-sm text-gray-600">Template Variable Filler</span>
           </div>
         </DialogHeader>
 
@@ -115,7 +113,10 @@ export const TemplateVariableFiller = ({ isOpen, onClose, prompt }: TemplateVari
           {/* Variables Form */}
           <div className="space-y-4">
             <h3 className="font-medium text-gray-900">Template Variables</h3>
-            {prompt.variables.map((variable) => (
+            {variables.length === 0 && (
+              <p className="text-gray-500">This prompt doesn't have any variables to fill.</p>
+            )}
+            {variables.map((variable) => (
               <div key={variable.name} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Label className="text-sm font-medium">{variable.name}</Label>
