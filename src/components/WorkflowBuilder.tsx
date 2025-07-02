@@ -167,6 +167,456 @@ const DEFAULT_WORKFLOW_TEMPLATES: Workflow[] = [
     ]
   },
   {
+    id: 'template-api-only',
+    name: 'REST API Development',
+    description: 'Focused workflow for building robust REST APIs with documentation and testing',
+    type: 'api',
+    estimatedTime: '1-2 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'api-planning',
+        title: 'API Design & Specification',
+        description: 'Define API endpoints, request/response schemas, and OpenAPI specification',
+        category: 'planning',
+        dependencies: [],
+        variables: { apiVersion: 'v1', authRequired: 'true' },
+        order: 1
+      },
+      {
+        id: 'api-models',
+        title: 'Data Models & Validation',
+        description: 'Create data models, validation schemas, and database entities',
+        category: 'backend',
+        dependencies: ['api-planning'],
+        variables: { validationLibrary: 'joi', dbORM: 'prisma' },
+        order: 2
+      },
+      {
+        id: 'api-auth',
+        title: 'Authentication & Authorization',
+        description: 'Implement JWT authentication, role-based access control',
+        category: 'backend',
+        dependencies: ['api-models'],
+        variables: { authStrategy: 'jwt', roles: 'admin,user' },
+        order: 3
+      },
+      {
+        id: 'api-endpoints',
+        title: 'API Endpoints Implementation',
+        description: 'Build CRUD endpoints with proper error handling and status codes',
+        category: 'backend',
+        dependencies: ['api-auth'],
+        variables: { framework: 'express', errorHandling: 'middleware' },
+        order: 4
+      },
+      {
+        id: 'api-testing',
+        title: 'API Testing Suite',
+        description: 'Create unit tests, integration tests, and API documentation',
+        category: 'testing',
+        dependencies: ['api-endpoints'],
+        variables: { testFramework: 'jest', apiDocs: 'swagger' },
+        order: 5
+      },
+      {
+        id: 'api-deployment',
+        title: 'API Deployment & Monitoring',
+        description: 'Deploy API with monitoring, logging, and rate limiting',
+        category: 'deployment',
+        dependencies: ['api-testing'],
+        variables: { platform: 'railway', monitoring: 'sentry' },
+        order: 6
+      }
+    ]
+  },
+  {
+    id: 'template-frontend-spa',
+    name: 'Frontend Single Page Application',
+    description: 'Modern frontend development workflow with state management and testing',
+    type: 'frontend',
+    estimatedTime: '1.5-3 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'spa-setup',
+        title: 'Project Setup & Configuration',
+        description: 'Initialize project with build tools, linting, and development environment',
+        category: 'planning',
+        dependencies: [],
+        variables: { framework: 'react', bundler: 'vite', linter: 'eslint' },
+        order: 1
+      },
+      {
+        id: 'spa-routing',
+        title: 'Routing & Navigation',
+        description: 'Set up client-side routing with protected routes and navigation',
+        category: 'frontend',
+        dependencies: ['spa-setup'],
+        variables: { router: 'react-router', authGuards: 'true' },
+        order: 2
+      },
+      {
+        id: 'spa-state',
+        title: 'State Management',
+        description: 'Implement global state management and data fetching patterns',
+        category: 'frontend',
+        dependencies: ['spa-routing'],
+        variables: { stateManager: 'zustand', dataFetching: 'react-query' },
+        order: 3
+      },
+      {
+        id: 'spa-components',
+        title: 'UI Components & Styling',
+        description: 'Build reusable components with consistent styling and theming',
+        category: 'frontend',
+        dependencies: ['spa-state'],
+        variables: { uiLibrary: 'shadcn', styling: 'tailwind' },
+        order: 4
+      },
+      {
+        id: 'spa-integration',
+        title: 'API Integration & Error Handling',
+        description: 'Connect to backend APIs with proper error boundaries and loading states',
+        category: 'integration',
+        dependencies: ['spa-components'],
+        variables: { httpClient: 'axios', errorBoundary: 'react-error-boundary' },
+        order: 5
+      },
+      {
+        id: 'spa-testing',
+        title: 'Frontend Testing',
+        description: 'Add unit tests, component tests, and end-to-end testing',
+        category: 'testing',
+        dependencies: ['spa-integration'],
+        variables: { unitTests: 'vitest', e2eTests: 'playwright' },
+        order: 6
+      },
+      {
+        id: 'spa-optimization',
+        title: 'Performance Optimization',
+        description: 'Implement code splitting, lazy loading, and performance monitoring',
+        category: 'deployment',
+        dependencies: ['spa-testing'],
+        variables: { bundleAnalyzer: 'true', lazyLoading: 'true' },
+        order: 7
+      }
+    ]
+  },
+  {
+    id: 'template-testing-qa',
+    name: 'Comprehensive Testing & QA',
+    description: 'Complete testing workflow covering all aspects of quality assurance',
+    type: 'custom',
+    estimatedTime: '2-3 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'test-strategy',
+        title: 'Test Strategy & Planning',
+        description: 'Define testing approach, coverage goals, and test environments',
+        category: 'planning',
+        dependencies: [],
+        variables: { testPyramid: 'unit-integration-e2e', coverage: '90%' },
+        order: 1
+      },
+      {
+        id: 'unit-tests',
+        title: 'Unit Testing Implementation',
+        description: 'Create comprehensive unit tests for all components and functions',
+        category: 'testing',
+        dependencies: ['test-strategy'],
+        variables: { framework: 'jest', mocking: 'jest.mock' },
+        order: 2
+      },
+      {
+        id: 'integration-tests',
+        title: 'Integration Testing',
+        description: 'Test component interactions and API integrations',
+        category: 'testing',
+        dependencies: ['unit-tests'],
+        variables: { testingLibrary: 'react-testing-library', apiMocking: 'msw' },
+        order: 3
+      },
+      {
+        id: 'e2e-tests',
+        title: 'End-to-End Testing',
+        description: 'Implement user journey tests and critical path validation',
+        category: 'testing',
+        dependencies: ['integration-tests'],
+        variables: { e2eFramework: 'playwright', browsers: 'chrome,firefox,safari' },
+        order: 4
+      },
+      {
+        id: 'performance-tests',
+        title: 'Performance Testing',
+        description: 'Load testing, stress testing, and performance benchmarking',
+        category: 'testing',
+        dependencies: ['e2e-tests'],
+        variables: { loadTesting: 'k6', metrics: 'lighthouse' },
+        order: 5
+      },
+      {
+        id: 'security-tests',
+        title: 'Security Testing',
+        description: 'Vulnerability scanning, penetration testing, and security audits',
+        category: 'testing',
+        dependencies: ['performance-tests'],
+        variables: { securityScan: 'snyk', penTest: 'owasp-zap' },
+        order: 6
+      },
+      {
+        id: 'test-automation',
+        title: 'Test Automation & CI/CD',
+        description: 'Set up automated testing pipeline and continuous quality gates',
+        category: 'deployment',
+        dependencies: ['security-tests'],
+        variables: { cicd: 'github-actions', qualityGates: 'sonarqube' },
+        order: 7
+      }
+    ]
+  },
+  {
+    id: 'template-devops-cicd',
+    name: 'DevOps & CI/CD Pipeline',
+    description: 'Complete DevOps workflow for automated deployment and infrastructure',
+    type: 'custom',
+    estimatedTime: '2-4 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'infra-planning',
+        title: 'Infrastructure Planning',
+        description: 'Design cloud architecture, resource requirements, and scaling strategy',
+        category: 'planning',
+        dependencies: [],
+        variables: { cloudProvider: 'aws', architecture: 'microservices' },
+        order: 1
+      },
+      {
+        id: 'iac-setup',
+        title: 'Infrastructure as Code',
+        description: 'Create infrastructure templates using Terraform or CloudFormation',
+        category: 'deployment',
+        dependencies: ['infra-planning'],
+        variables: { iacTool: 'terraform', stateManagement: 's3' },
+        order: 2
+      },
+      {
+        id: 'containerization',
+        title: 'Containerization & Orchestration',
+        description: 'Create Docker containers and Kubernetes manifests',
+        category: 'deployment',
+        dependencies: ['iac-setup'],
+        variables: { containerRuntime: 'docker', orchestration: 'kubernetes' },
+        order: 3
+      },
+      {
+        id: 'cicd-pipeline',
+        title: 'CI/CD Pipeline Setup',
+        description: 'Build automated pipeline for testing, building, and deployment',
+        category: 'deployment',
+        dependencies: ['containerization'],
+        variables: { cicdTool: 'github-actions', registry: 'docker-hub' },
+        order: 4
+      },
+      {
+        id: 'monitoring-setup',
+        title: 'Monitoring & Observability',
+        description: 'Set up logging, metrics, tracing, and alerting systems',
+        category: 'deployment',
+        dependencies: ['cicd-pipeline'],
+        variables: { monitoring: 'prometheus', logging: 'elk-stack' },
+        order: 5
+      },
+      {
+        id: 'security-hardening',
+        title: 'Security & Compliance',
+        description: 'Implement security best practices and compliance requirements',
+        category: 'deployment',
+        dependencies: ['monitoring-setup'],
+        variables: { secretsManager: 'vault', compliance: 'soc2' },
+        order: 6
+      },
+      {
+        id: 'disaster-recovery',
+        title: 'Backup & Disaster Recovery',
+        description: 'Set up backup strategies and disaster recovery procedures',
+        category: 'deployment',
+        dependencies: ['security-hardening'],
+        variables: { backupStrategy: 'automated', rto: '4hours', rpo: '1hour' },
+        order: 7
+      }
+    ]
+  },
+  {
+    id: 'template-mobile-app',
+    name: 'Mobile App Development',
+    description: 'Cross-platform mobile application development workflow',
+    type: 'custom',
+    estimatedTime: '3-5 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'mobile-planning',
+        title: 'Mobile App Planning',
+        description: 'Define app requirements, target platforms, and user experience',
+        category: 'planning',
+        dependencies: [],
+        variables: { platforms: 'ios,android', framework: 'react-native' },
+        order: 1
+      },
+      {
+        id: 'mobile-setup',
+        title: 'Development Environment Setup',
+        description: 'Configure development tools, emulators, and build systems',
+        category: 'planning',
+        dependencies: ['mobile-planning'],
+        variables: { ide: 'vscode', emulator: 'android-studio' },
+        order: 2
+      },
+      {
+        id: 'mobile-navigation',
+        title: 'Navigation & Screen Structure',
+        description: 'Implement navigation patterns and screen hierarchy',
+        category: 'frontend',
+        dependencies: ['mobile-setup'],
+        variables: { navigation: 'react-navigation', patterns: 'tab,stack,drawer' },
+        order: 3
+      },
+      {
+        id: 'mobile-ui',
+        title: 'UI Components & Styling',
+        description: 'Build responsive UI components with platform-specific styling',
+        category: 'frontend',
+        dependencies: ['mobile-navigation'],
+        variables: { uiLibrary: 'native-base', styling: 'styled-components' },
+        order: 4
+      },
+      {
+        id: 'mobile-features',
+        title: 'Native Features Integration',
+        description: 'Integrate camera, GPS, push notifications, and device APIs',
+        category: 'integration',
+        dependencies: ['mobile-ui'],
+        variables: { camera: 'expo-camera', location: 'expo-location' },
+        order: 5
+      },
+      {
+        id: 'mobile-data',
+        title: 'Data Management & Offline Support',
+        description: 'Implement local storage, caching, and offline functionality',
+        category: 'backend',
+        dependencies: ['mobile-features'],
+        variables: { localStorage: 'async-storage', offline: 'redux-persist' },
+        order: 6
+      },
+      {
+        id: 'mobile-testing',
+        title: 'Mobile Testing & Debugging',
+        description: 'Test on multiple devices, screen sizes, and operating systems',
+        category: 'testing',
+        dependencies: ['mobile-data'],
+        variables: { testing: 'detox', debugging: 'flipper' },
+        order: 7
+      },
+      {
+        id: 'mobile-deployment',
+        title: 'App Store Deployment',
+        description: 'Build release versions and deploy to app stores',
+        category: 'deployment',
+        dependencies: ['mobile-testing'],
+        variables: { buildTool: 'eas-build', stores: 'app-store,play-store' },
+        order: 8
+      }
+    ]
+  },
+  {
+    id: 'template-data-processing',
+    name: 'Data Processing & Analytics',
+    description: 'End-to-end data pipeline for processing and analytics',
+    type: 'custom',
+    estimatedTime: '2-4 hours',
+    isTemplate: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    steps: [
+      {
+        id: 'data-requirements',
+        title: 'Data Requirements Analysis',
+        description: 'Define data sources, processing requirements, and output formats',
+        category: 'planning',
+        dependencies: [],
+        variables: { dataSources: 'api,csv,database', outputFormat: 'json,parquet' },
+        order: 1
+      },
+      {
+        id: 'data-ingestion',
+        title: 'Data Ingestion Pipeline',
+        description: 'Set up data collection from various sources with validation',
+        category: 'backend',
+        dependencies: ['data-requirements'],
+        variables: { ingestionTool: 'apache-kafka', validation: 'json-schema' },
+        order: 2
+      },
+      {
+        id: 'data-processing',
+        title: 'Data Processing & Transformation',
+        description: 'Clean, transform, and enrich data using processing frameworks',
+        category: 'backend',
+        dependencies: ['data-ingestion'],
+        variables: { processingFramework: 'apache-spark', language: 'python' },
+        order: 3
+      },
+      {
+        id: 'data-storage',
+        title: 'Data Storage & Warehousing',
+        description: 'Store processed data in appropriate storage solutions',
+        category: 'backend',
+        dependencies: ['data-processing'],
+        variables: { warehouse: 'snowflake', storage: 's3,postgresql' },
+        order: 4
+      },
+      {
+        id: 'data-analytics',
+        title: 'Analytics & Visualization',
+        description: 'Create dashboards, reports, and analytical insights',
+        category: 'frontend',
+        dependencies: ['data-storage'],
+        variables: { visualization: 'tableau', dashboards: 'grafana' },
+        order: 5
+      },
+      {
+        id: 'data-ml',
+        title: 'Machine Learning Integration',
+        description: 'Implement ML models for predictive analytics and insights',
+        category: 'integration',
+        dependencies: ['data-analytics'],
+        variables: { mlFramework: 'scikit-learn', deployment: 'mlflow' },
+        order: 6
+      },
+      {
+        id: 'data-monitoring',
+        title: 'Data Quality & Monitoring',
+        description: 'Set up data quality checks, monitoring, and alerting',
+        category: 'testing',
+        dependencies: ['data-ml'],
+        variables: { qualityTool: 'great-expectations', monitoring: 'datadog' },
+        order: 7
+      }
+    ]
+  },
+  {
     id: 'template-conditional',
     name: 'Conditional Development Workflow',
     description: 'Demonstrates conditional logic in workflows based on project complexity',
@@ -354,6 +804,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
   const [editingBranch, setEditingBranch] = useState<{ stepId: string; branch: ConditionalBranch } | null>(null);
   const [executingWorkflow, setExecutingWorkflow] = useState<Workflow | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [templateFilter, setTemplateFilter] = useState<string>('all');
+
+  // Filter workflows based on selected template filter
+  const filteredWorkflows = workflows.filter(workflow => {
+    if (templateFilter === 'all') return true;
+    return workflow.type === templateFilter;
+  });
 
   // New step form state
   const [newStep, setNewStep] = useState<Partial<WorkflowStep>>({
@@ -960,93 +1417,191 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({
         </Card>
       )}
 
-      {/* Workflow Templates Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {workflows.map((workflow) => (
-          <Card key={workflow.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <GitBranch className="w-5 h-5" />
-                  {workflow.name}
-                </div>
-                <div className="flex gap-1">
-                  <Badge variant="secondary">{workflow.type}</Badge>
-                  {workflow.isTemplate && (
-                    <Badge variant="outline">Template</Badge>
-                  )}
-                </div>
-              </CardTitle>
-              <p className="text-sm text-gray-600">{workflow.description}</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">{workflow.steps.length} steps</span>
-                  <span className="text-gray-500">~{workflow.estimatedTime}</span>
-                </div>
-                
-                <div className="flex flex-wrap gap-1">
-                  {workflow.steps.slice(0, 4).map((step, index) => (
-                    <Badge key={index} variant="outline" className={`text-xs ${getCategoryColor(step.category)}`}>
-                      {step.category}
-                    </Badge>
-                  ))}
-                  {workflow.steps.length > 4 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{workflow.steps.length - 4} more
-                    </Badge>
-                  )}
-                </div>
+      {/* Template Statistics */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{workflows.filter(w => w.isTemplate).length}</div>
+              <div className="text-sm text-gray-600">Templates Available</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{workflows.reduce((acc, w) => acc + w.steps.length, 0)}</div>
+              <div className="text-sm text-gray-600">Total Steps</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{new Set(workflows.flatMap(w => w.steps.map(s => s.category))).size}</div>
+              <div className="text-sm text-gray-600">Categories</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{workflows.filter(w => !w.isTemplate).length}</div>
+              <div className="text-sm text-gray-600">Custom Workflows</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-                <Separator />
-
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    onClick={() => handleExecuteWorkflow(workflow)}
-                    className="flex items-center gap-1"
-                  >
-                    <Play className="w-3 h-3" />
-                    Run
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      setCurrentWorkflow(workflow);
-                      setIsEditing(true);
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    <Edit className="w-3 h-3" />
-                    Edit
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    onClick={() => {
-                      const clonedWorkflow = {
-                        ...workflow,
-                        id: `workflow-${Date.now()}`,
-                        name: `${workflow.name} (Copy)`,
-                        isTemplate: false,
-                        createdAt: new Date(),
-                        updatedAt: new Date()
-                      };
-                      setWorkflows(prev => [...prev, clonedWorkflow]);
-                      toast.success('Workflow cloned!');
-                    }}
-                    className="flex items-center gap-1"
-                  >
-                    <Copy className="w-3 h-3" />
-                    Clone
-                  </Button>
+      {/* Quick Start Templates */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="w-5 h-5" />
+            Quick Start Templates
+          </CardTitle>
+          <p className="text-sm text-gray-600">Popular workflow templates to get you started quickly</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {workflows.filter(w => w.isTemplate).slice(0, 3).map((template) => (
+              <div key={template.id} className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                   onClick={() => handleExecuteWorkflow(template)}>
+                <div className="flex items-center justify-between mb-2">
+                  <Badge variant="secondary" className="text-xs">{template.type}</Badge>
+                  <span className="text-xs text-gray-500">{template.steps.length} steps</span>
+                </div>
+                <h5 className="font-medium mb-1">{template.name}</h5>
+                <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
+                <div className="mt-3 flex items-center gap-2">
+                  <Play className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm text-blue-600 font-medium">Start Workflow</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ))}
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Workflow Templates Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="text-lg font-semibold">All Workflow Templates</h4>
+          <div className="flex gap-2">
+            <Select value={templateFilter} onValueChange={setTemplateFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Templates</SelectItem>
+                <SelectItem value="fullstack">Full-Stack</SelectItem>
+                <SelectItem value="frontend">Frontend</SelectItem>
+                <SelectItem value="backend">Backend</SelectItem>
+                <SelectItem value="api">API</SelectItem>
+                <SelectItem value="mobile">Mobile</SelectItem>
+                <SelectItem value="devops">DevOps</SelectItem>
+                <SelectItem value="testing">Testing</SelectItem>
+                <SelectItem value="data">Data Processing</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredWorkflows.map((workflow) => (
+            <Card key={workflow.id} className={`hover:shadow-md transition-shadow ${
+              workflow.isTemplate ? 'border-blue-200 bg-blue-50/30' : ''
+            }`}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <GitBranch className="w-5 h-5" />
+                    <span className="truncate">{workflow.name}</span>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Badge variant="secondary" className="text-xs">{workflow.type}</Badge>
+                    {workflow.isTemplate && (
+                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-300">
+                        Template
+                      </Badge>
+                    )}
+                  </div>
+                </CardTitle>
+                <p className="text-sm text-gray-600 line-clamp-2">{workflow.description}</p>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500">{workflow.steps.length} steps</span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-500">~{workflow.estimatedTime}</span>
+                    </div>
+                    {workflow.isTemplate && (
+                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                        Ready to Use
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-1">
+                    {workflow.steps.slice(0, 3).map((step, index) => (
+                      <Badge key={index} variant="outline" className={`text-xs ${getCategoryColor(step.category)}`}>
+                        {step.category}
+                      </Badge>
+                    ))}
+                    {workflow.steps.length > 3 && (
+                      <Badge variant="outline" className="text-xs text-gray-500">
+                        +{workflow.steps.length - 3}
+                      </Badge>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleExecuteWorkflow(workflow)}
+                      className="flex items-center gap-1 flex-1"
+                    >
+                      <Play className="w-3 h-3" />
+                      Run
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setCurrentWorkflow(workflow);
+                        setIsEditing(true);
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Edit className="w-3 h-3" />
+                      Edit
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        const clonedWorkflow = {
+                          ...workflow,
+                          id: `workflow-${Date.now()}`,
+                          name: `${workflow.name} (Copy)`,
+                          isTemplate: false,
+                          createdAt: new Date(),
+                          updatedAt: new Date()
+                        };
+                        setWorkflows(prev => [...prev, clonedWorkflow]);
+                        toast.success('Workflow cloned!');
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Copy className="w-3 h-3" />
+                      Clone
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        {filteredWorkflows.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <GitBranch className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>No workflows found for the selected filter.</p>
+          </div>
+        )}
       </div>
 
       {/* Conditional Branch Editor Dialog */}
