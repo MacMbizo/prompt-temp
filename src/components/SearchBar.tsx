@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, X, Clock, TrendingUp, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
-// import { useSearchHistory } from '@/hooks/useSearchHistory';
+import { useSearchHistory } from '@/hooks/useSearchHistory';
 
 interface SearchBarProps {
   searchQuery: string;
@@ -32,14 +32,7 @@ export const SearchBar = ({
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  // const { searchHistory, popularSearches } = useSearchHistory();
-  
-  // Mock data for testing
-  const searchHistory: any[] = [];
-  const popularSearches: any[] = [];
-  
-  // Combine recent searches and popular searches for quick access
-  const quickSearches: any[] = [];
+  const { searchHistory, popularSearches, quickSearches } = useSearchHistory();
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {

@@ -107,7 +107,7 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
               onSuggestionSelect={onSuggestionSelect}
               onShowHistory={() => setShowSearchHistory(!showSearchHistory)}
             />
-            {/* {showSearchHistory && (
+            {showSearchHistory && (
               <div className="absolute top-full left-0 right-0 z-50 mt-2">
                 <SearchHistoryPanel
                   onSearchSelect={handleSearchFromHistory}
@@ -115,7 +115,7 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
                   currentFilters={currentFilters}
                 />
               </div>
-            )} */}
+            )}
           </div>
           <AdvancedSearchFiltersComponent
             filters={currentFilters}

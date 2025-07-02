@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePromptCache } from './usePromptCache';
-// import { useSearchHistory } from './useSearchHistory';
+import { useSearchHistory } from './useSearchHistory';
 import { supabase } from '@/integrations/supabase/client';
 import type { Prompt } from '@/integrations/supabase/types';
 
@@ -20,7 +20,7 @@ export const useOptimizedSearch = ({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const { getFromCache, setCache } = usePromptCache();
-  // const { addToHistory } = useSearchHistory();
+  const { addToHistory } = useSearchHistory();
 
   // Debounce search query
   useEffect(() => {
@@ -75,9 +75,9 @@ export const useOptimizedSearch = ({
           setCache(cacheKey, filteredDbResults);
           
           // Add to search history if we have a meaningful query and results
-          // if (debouncedQuery.trim().length > 2 && filteredDbResults.length > 0) {
-          //   addToHistory(debouncedQuery, {}, filteredDbResults.length);
-          // }
+          if (debouncedQuery.trim().length > 2 && filteredDbResults.length > 0) {
+            addToHistory(debouncedQuery, {}, filteredDbResults.length);
+          }
         }
         } else {
           // If search term is empty after cleaning, fall back to client-side

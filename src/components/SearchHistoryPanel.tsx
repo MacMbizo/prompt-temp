@@ -10,27 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// import { useSearchHistory, SearchHistoryEntry, SavedSearch } from '@/hooks/useSearchHistory';
+import { useSearchHistory, SearchHistoryEntry, SavedSearch } from '@/hooks/useSearchHistory';
 
-// Temporary type definitions for testing
-interface SearchHistoryEntry {
-  id: string;
-  search_query: string;
-  search_filters: Record<string, any>;
-  result_count: number;
-  created_at: string;
-}
 
-interface SavedSearch {
-  id: string;
-  name: string;
-  search_query: string;
-  search_filters: Record<string, any>;
-  description?: string;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
-}
 import { formatDistanceToNow } from 'date-fns';
 
 interface SearchHistoryPanelProps {
@@ -133,29 +115,20 @@ const SaveSearchDialog: React.FC<SaveSearchDialogProps> = ({ query, filters, onS
   );
 };
 
-const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
+export const SearchHistoryPanel: React.FC<SearchHistoryPanelProps> = ({
   onSearchSelect,
   currentQuery = '',
   currentFilters = {}
 }) => {
-  // const {
-  //   searchHistory,
-  //   savedSearches,
-  //   popularSearches,
-  //   loading,
-  //   saveSearch,
-  //   deleteSavedSearch,
-  //   clearHistory
-  // } = useSearchHistory();
-  
-  // Mock data for testing
-  const searchHistory: any[] = [];
-  const savedSearches: any[] = [];
-  const popularSearches: any[] = [];
-  const loading = false;
-  const saveSearch = async () => {};
-  const deleteSavedSearch = async () => {};
-  const clearHistory = async () => {};
+  const {
+    searchHistory,
+    savedSearches,
+    popularSearches,
+    loading,
+    saveSearch,
+    deleteSavedSearch,
+    clearHistory
+  } = useSearchHistory();
 
   const [editingSearch, setEditingSearch] = useState<SavedSearch | null>(null);
 
