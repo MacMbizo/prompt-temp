@@ -21,9 +21,10 @@ vi.mock('@/contexts/AuthContext', () => ({
   }))
 }));
 
+const mockUpdateReputation = vi.fn(() => Promise.resolve());
 vi.mock('@/hooks/useReputation', () => ({
   useReputation: vi.fn(() => ({
-    updateReputation: vi.fn(() => Promise.resolve())
+    updateReputation: mockUpdateReputation
   }))
 }));
 
@@ -87,7 +88,8 @@ describe('usePromptCopy', () => {
 
   it('should copy text to clipboard and update copy history when handleCopy is called', async () => {
     const { result } = renderHook(() => usePromptCopy());
-    const updateReputationMock = useReputation().updateReputation;
+    // Use the globally mocked updateReputation
+    // const updateReputationMock = useReputation().updateReputation; // No longer needed as we use the global mock directly
     const mockContent = 'Test content to copy';
     const mockOnCopySuccess = vi.fn();
     
@@ -111,7 +113,7 @@ describe('usePromptCopy', () => {
     });
     
     // Verify reputation update was called
-    expect(updateReputationMock).toHaveBeenCalledWith(1, 'Used a prompt');
+    expect(mockUpdateReputation).toHaveBeenCalledWith(1, 'Used a prompt');
     
     // Verify success toast was shown
     expect(toast.success).toHaveBeenCalledWith('Prompt copied to clipboard!');

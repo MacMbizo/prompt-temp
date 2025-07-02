@@ -93,6 +93,7 @@ const Index = () => {
     filteredPrompts,
     isSearching,
     searchSuggestions,
+    searchError,
     resultCount
   } = useOptimizedSearch({
     prompts: preFilteredPrompts,
@@ -249,6 +250,10 @@ const Index = () => {
                 searchPlaceholder={getSearchPlaceholder()}
                 prompts={preFilteredPrompts}
                 isLoading={loading || isSearching}
+                searchSuggestions={searchSuggestions}
+                isSearching={isSearching}
+                searchError={searchError}
+                onSuggestionSelect={setSearchQuery}
               />
 
               {/* Performance toggle */}

@@ -1,4 +1,34 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
+
+// Mock AuthContext to ensure AuthContext.Provider is defined
+vi.mock('@/contexts/AuthContext', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    AuthContext: {
+      Provider: ({ children, value }) => {
+        // Provide a default value for AuthContextType to prevent useAuth from throwing
+        const defaultValue = value || {
+          session: null,
+          user: null,
+          signIn: vi.fn(),
+          signOut: vi.fn(),
+          signUp: vi.fn(),
+          loading: false
+        };
+        // Use React context API to provide the value
+        return (
+          <actual.AuthContext.Provider value={defaultValue}>
+            {children}
+          </actual.AuthContext.Provider>
+        );
+      },
+    },
+  };
+});
+
+import { AuthContext } from '@/contexts/AuthContext';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { PromptCard } from '../PromptCard';
 import { usePromptCopy } from '@/hooks/usePromptCopy';
@@ -89,7 +119,11 @@ describe('PromptCard', () => {
   });
 
   it('renders the prompt card with correct information', () => {
-    render(<PromptCard prompt={mockPrompt} />);
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={mockPrompt} />
+      </AuthContext.Provider>
+    );
     
     expect(screen.getByText('Test Prompt')).toBeInTheDocument();
     expect(screen.getByText('Test description')).toBeInTheDocument();
@@ -99,7 +133,11 @@ describe('PromptCard', () => {
   });
 
   it('calls handleCopy when copy button is clicked', async () => {
-    render(<PromptCard prompt={mockPrompt} />);
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={mockPrompt} />
+      </AuthContext.Provider>
+    );
     
     const copyButton = screen.getByText('Copy');
     fireEvent.click(copyButton);
@@ -122,7 +160,11 @@ describe('PromptCard', () => {
       ]
     };
     
-    render(<PromptCard prompt={promptWithVariables} />);
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={promptWithVariables} />
+      </AuthContext.Provider>
+    );
     
     expect(screen.getByTestId('template-variable-filler')).toBeInTheDocument();
   });
@@ -136,7 +178,11 @@ describe('PromptCard', () => {
       ]
     };
     
-    render(<PromptCard prompt={promptWithVariables} />);
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={promptWithVariables} />
+      </AuthContext.Provider>
+    );
     
     const templateFiller = screen.getByTestId('template-variable-filler');
     fireEvent.click(templateFiller);
@@ -147,8 +193,11 @@ describe('PromptCard', () => {
   });
 
   it('displays platform selection dropdown', () => {
-    render(<PromptCard prompt={mockPrompt} />);
-    
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={mockPrompt} />
+      </AuthContext.Provider>
+    );
     const platformSelect = screen.getByLabelText('Platform');
     expect(platformSelect).toBeInTheDocument();
   });
@@ -160,7 +209,11 @@ describe('PromptCard', () => {
       usage_count: 5
     };
     
-    render(<PromptCard prompt={promptWithStats} />);
+    render(
+      <AuthContext.Provider value={{ session: null, user: null, signIn: vi.fn(), signOut: vi.fn(), signUp: vi.fn() }}>
+        <PromptCard prompt={promptWithStats} />
+      </AuthContext.Provider>
+    );
     
     expect(screen.getByText('10')).toBeInTheDocument(); // Copy count
     expect(screen.getByText('5')).toBeInTheDocument(); // Usage count

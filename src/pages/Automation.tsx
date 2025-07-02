@@ -6,10 +6,14 @@ import { Header } from '@/components/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AIPromptOptimizer } from '@/components/AIPromptOptimizer';
 import { AutomationDashboard } from '@/components/AutomationDashboard';
-import { Brain, Zap } from 'lucide-react';
+import { Brain, Zap, GitBranch } from 'lucide-react';
+import { WorkflowBuilder } from '@/components/WorkflowBuilder';
+import { usePrompts } from '@/hooks/usePrompts';
+import { toast } from 'sonner';
 
 const Automation = () => {
   const { user } = useAuth();
+  const { prompts } = usePrompts();
   const [activeTab, setActiveTab] = useState('optimizer');
 
   return (
@@ -25,7 +29,7 @@ const Automation = () => {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="optimizer" className="flex items-center">
                 <Brain className="w-4 h-4 mr-2" />
                 AI Optimizer
@@ -33,6 +37,10 @@ const Automation = () => {
               <TabsTrigger value="automation" className="flex items-center">
                 <Zap className="w-4 h-4 mr-2" />
                 Automation Rules
+              </TabsTrigger>
+              <TabsTrigger value="workflows" className="flex items-center">
+                <GitBranch className="w-4 h-4 mr-2" />
+                Workflow Builder
               </TabsTrigger>
             </TabsList>
 
@@ -42,6 +50,22 @@ const Automation = () => {
 
             <TabsContent value="automation" className="mt-6">
               <AutomationDashboard />
+            </TabsContent>
+
+            <TabsContent value="workflows" className="mt-6">
+              <WorkflowBuilder 
+                prompts={prompts}
+                onSaveWorkflow={(workflow) => {
+                  toast.success(`Workflow "${workflow.name}" saved successfully!`);
+                  // Here you could save to database or local storage
+                  console.log('Saving workflow:', workflow);
+                }}
+                onExecuteWorkflow={(workflow) => {
+                  toast.success(`Executing workflow: ${workflow.name}`);
+                  // Here you could integrate with actual execution logic
+                  console.log('Executing workflow:', workflow);
+                }}
+              />
             </TabsContent>
           </Tabs>
         </main>
