@@ -7,7 +7,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Copy, TrendingUp } from 'lucide-react';
-import { Prompt } from '@/hooks/usePrompts';
+import { Prompt } from '@/integrations/supabase/types';
+import { usePromptCopy, AVAILABLE_PLATFORMS } from '@/hooks/usePromptCopy';
 import { PromptCardHeader } from '@/components/PromptCardHeader';
 import { PromptCardBadges } from '@/components/PromptCardBadges';
 import { PromptCardDropdown } from '@/components/PromptCardDropdown';
@@ -18,22 +19,6 @@ import { RatingComponent } from '@/components/RatingComponent';
 import { PlatformBadge } from '@/components/PlatformBadge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRatings } from '@/hooks/useRatings';
-import { useReputation } from '@/hooks/useReputation';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-const AVAILABLE_PLATFORMS = [
-  'ChatGPT',
-  'Claude', 
-  'Gemini',
-  'GPT-4',
-  'Midjourney',
-  'DALL-E',
-  'Stable Diffusion',
-  'Perplexity',
-  'GitHub Copilot',
-  'Notion AI'
-];
 
 interface PromptCardProps {
   prompt: Prompt & { createdAt: Date; updatedAt: Date };
@@ -45,39 +30,14 @@ interface PromptCardProps {
 export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDuplicate, onUpdate }) => {
   const { user } = useAuth();
   const { userRating, refetch: refetchRating } = useRatings(prompt.id);
-  const { updateReputation } = useReputation();
+  const { selectedPlatform, setSelectedPlatform, handleCopy } = usePromptCopy();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isVariableFillerOpen, setIsVariableFillerOpen] = useState(false);
   const [isCommunityModalOpen, setIsCommunityModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
 
   const isOwner = user && prompt.user_id === user.id;
   const canEdit = isOwner && !prompt.is_community;
-
-  const handleCopy = async (content: string) => {
-    try {
-      await navigator.clipboard.writeText(content);
-      
-      if (user && selectedPlatform) {
-        await supabase
-          .from('copy_history')
-          .insert({
-            user_id: user.id,
-            prompt_id: prompt.id,
-            platform_used: selectedPlatform
-          });
-
-        await updateReputation(1, 'Used a prompt');
-      }
-      
-      toast.success('Prompt copied to clipboard!');
-      setIsPreviewOpen(false);
-      setIsVariableFillerOpen(false);
-    } catch (error) {
-      toast.error('Failed to copy prompt');
-    }
-  };
 
   const handleViewPrompt = () => {
     setIsPreviewOpen(true);
@@ -201,6 +161,7 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
         isOpen={isVariableFillerOpen}
         onClose={() => setIsVariableFillerOpen(false)}
         prompt={prompt}
+        onCopy={(content) => handleCopy(prompt, content, () => setIsVariableFillerOpen(false))}
       />
 
       <CommunitySubmissionModal
@@ -285,13 +246,8 @@ export const PromptCard: React.FC<PromptCardProps> = ({ prompt, onDelete, onDupl
               </Select>
             </div>
 
-            <Button 
-              onClick={() => handleCopy(prompt.prompt_text)}
-              className="w-full"
-              disabled={!selectedPlatform}
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy to Clipboard
+            <Button onClick={() => handleCopy(prompt, prompt.prompt_text, () => setIsPreviewOpen(false))}>
+              <Copy className="mr-2 h-4 w-4" /> Copy Prompt
             </Button>
           </div>
         </DialogContent>
